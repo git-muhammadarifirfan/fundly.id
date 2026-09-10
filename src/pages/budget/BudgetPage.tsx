@@ -91,7 +91,8 @@ export const BudgetPage: React.FC = () => {
   const [formGoalName, setFormGoalName] = useState('');
   const [formGoalTarget, setFormGoalTarget] = useState('');
   const [formGoalCurrent, setFormGoalCurrent] = useState('');
-  const [formGoalDeadline, setFormGoalDeadline] = useState('');
+  const [formGoalMonth, setFormGoalMonth] = useState('Desember');
+  const [formGoalYear, setFormGoalYear] = useState('2027');
 
   // Notification Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -151,12 +152,13 @@ export const BudgetPage: React.FC = () => {
     setActiveModal('editBudget');
   };
 
-  // Open Add Goal Modal
+  // Open Add Goal Modal (Default current money set to total spent or 0 formatted)
   const openAddGoalModal = () => {
     setFormGoalName('');
     setFormGoalTarget('');
     setFormGoalCurrent('0');
-    setFormGoalDeadline('Desember 2027');
+    setFormGoalMonth('Desember');
+    setFormGoalYear('2027');
     setErrorMessage(null);
     setActiveModal('addGoal');
   };
@@ -167,7 +169,17 @@ export const BudgetPage: React.FC = () => {
     setFormGoalName(item.name);
     setFormGoalTarget(formatRupiahInput(item.target));
     setFormGoalCurrent(formatRupiahInput(item.current));
-    setFormGoalDeadline(item.deadline);
+    
+    // Parse deadline string e.g. "Desember 2027" or "Maret 2027"
+    const parts = item.deadline.split(' ');
+    if (parts.length >= 2) {
+      setFormGoalMonth(parts[0]);
+      setFormGoalYear(parts[1]);
+    } else {
+      setFormGoalMonth('Desember');
+      setFormGoalYear('2027');
+    }
+
     setErrorMessage(null);
     setActiveModal('editGoal');
   };
@@ -220,6 +232,7 @@ export const BudgetPage: React.FC = () => {
     e.preventDefault();
     const targetNum = parseInt(formGoalTarget.replace(/\D/g, ''));
     const currentNum = parseInt(formGoalCurrent.replace(/\D/g, '')) || 0;
+    const deadlineStr = `${formGoalMonth} ${formGoalYear}`;
 
     if (!formGoalName.trim()) {
       setErrorMessage('Nama target tidak boleh kosong!');
@@ -238,7 +251,7 @@ export const BudgetPage: React.FC = () => {
         current: currentNum,
         target: targetNum,
         color: '#5AC8FA',
-        deadline: formGoalDeadline || '2027',
+        deadline: deadlineStr,
       };
       setGoals([...goals, newGoal]);
       showToast(`Berhasil membuat target ${formGoalName}`);
@@ -246,7 +259,7 @@ export const BudgetPage: React.FC = () => {
       setGoals(
         goals.map((g) =>
           g.id === editingGoalId
-            ? { ...g, name: formGoalName, target: targetNum, current: currentNum, deadline: formGoalDeadline }
+            ? { ...g, name: formGoalName, target: targetNum, current: currentNum, deadline: deadlineStr }
             : g
         )
       );
@@ -630,13 +643,39 @@ export const BudgetPage: React.FC = () => {
 
                 <div className={styles.formGroup}>
                   <label>Tenggat Waktu / Deadline</label>
-                  <input
-                    type="text"
-                    placeholder="Misal: Desember 2027"
-                    value={formGoalDeadline}
-                    onChange={(e) => setFormGoalDeadline(e.target.value)}
-                    className={styles.formInput}
-                  />
+                  <div className={styles.deadlineRow}>
+                    <SelectDropdown
+                      fullWidth
+                      value={formGoalMonth}
+                      onChange={(val) => setFormGoalMonth(val)}
+                      options={[
+                        { value: 'Januari', label: 'Januari' },
+                        { value: 'Februari', label: 'Februari' },
+                        { value: 'Maret', label: 'Maret' },
+                        { value: 'April', label: 'April' },
+                        { value: 'Mei', label: 'Mei' },
+                        { value: 'Juni', label: 'Juni' },
+                        { value: 'Juli', label: 'Juli' },
+                        { value: 'Agustus', label: 'Agustus' },
+                        { value: 'September', label: 'September' },
+                        { value: 'Oktober', label: 'Oktober' },
+                        { value: 'November', label: 'November' },
+                        { value: 'Desember', label: 'Desember' },
+                      ]}
+                    />
+                    <SelectDropdown
+                      fullWidth
+                      value={formGoalYear}
+                      onChange={(val) => setFormGoalYear(val)}
+                      options={[
+                        { value: '2026', label: '2026' },
+                        { value: '2027', label: '2027' },
+                        { value: '2028', label: '2028' },
+                        { value: '2029', label: '2029' },
+                        { value: '2030', label: '2030' },
+                      ]}
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.modalFooter}>
