@@ -384,7 +384,7 @@ export const ReportsPage: React.FC = () => {
             <Card padding="lg">
               <div className={styles.pocketHeader}>
                 <h3 className={styles.pocketTitle}>Alokasi Kantong (My Pocket)</h3>
-                <button className={styles.seeDetailLink}>Lihat Detail</button>
+                <button className={styles.seeDetailLink} onClick={() => navigate(ROUTES.ACCOUNTS)}>Lihat Detail</button>
               </div>
 
               <div className={styles.donutContainer}>

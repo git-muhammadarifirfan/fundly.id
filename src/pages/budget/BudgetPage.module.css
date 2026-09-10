@@ -688,10 +688,18 @@
 }
 
 @media (max-width: 640px) {
+  .page {
+    gap: var(--space-4);
+  }
+
   .headerRow {
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-3);
+  }
+
+  .pageTitle {
+    font-size: var(--text-xl);
   }
 
   .headerActions {
@@ -704,19 +712,47 @@
   .heroCard {
     padding: var(--space-4);
     gap: var(--space-3);
+    border-radius: var(--radius-xl);
+  }
+
+  .heroHeader {
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 
   .heroBody {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-3);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .heroAmount {
+    font-size: var(--text-2xl);
+  }
+
+  .heroLimit {
+    font-size: var(--text-xs);
   }
 
   .heroGaugePill {
-    flex-direction: row;
-    justify-content: space-between;
+    padding: 6px 12px;
+    border-radius: var(--radius-lg);
     align-items: center;
-    padding: var(--space-2) var(--space-3);
+  }
+
+  .heroGaugePct {
+    font-size: var(--text-lg);
+  }
+
+  .heroGaugeText {
+    font-size: 9px;
+  }
+
+  .sectionTitleRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
   }
 
   .filterTabs {
@@ -728,14 +764,21 @@
 
   .filterTab {
     justify-content: center;
-    padding: 6px 4px;
+    padding: 8px 4px;
     font-size: 11px;
+  }
+
+  .budgetGrid,
+  .goalsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
 
   .budgetCard,
   .goalCard {
-    padding: var(--space-3);
-    gap: var(--space-2);
+    padding: var(--space-4);
+    gap: var(--space-3);
+    border-radius: var(--radius-lg);
   }
 
   .toastPill {

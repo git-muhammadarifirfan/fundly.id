@@ -134,11 +134,19 @@ export const BudgetPage: React.FC = () => {
     setActiveModal('addBudget');
   };
 
+  // Helper format rupiah input (e.g. 6000000 -> "6.000.000")
+  const formatRupiahInput = (val: string | number) => {
+    if (!val && val !== 0) return '';
+    const cleanNum = val.toString().replace(/\D/g, '');
+    if (!cleanNum) return '';
+    return new Intl.NumberFormat('id-ID').format(parseInt(cleanNum, 10));
+  };
+
   // Open Edit Budget Modal
   const openEditBudgetModal = (item: BudgetItem) => {
     setEditingBudgetId(item.id);
     setFormCategory(item.category);
-    setFormLimit(item.limit.toString());
+    setFormLimit(formatRupiahInput(item.limit));
     setErrorMessage(null);
     setActiveModal('editBudget');
   };
@@ -157,8 +165,8 @@ export const BudgetPage: React.FC = () => {
   const openEditGoalModal = (item: GoalItem) => {
     setEditingGoalId(item.id);
     setFormGoalName(item.name);
-    setFormGoalTarget(item.target.toString());
-    setFormGoalCurrent(item.current.toString());
+    setFormGoalTarget(formatRupiahInput(item.target));
+    setFormGoalCurrent(formatRupiahInput(item.current));
     setFormGoalDeadline(item.deadline);
     setErrorMessage(null);
     setActiveModal('editGoal');
@@ -527,14 +535,17 @@ export const BudgetPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Batas Limit Anggaran (Rp)</label>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 5000000"
-                    value={formLimit}
-                    onChange={(e) => setFormLimit(e.target.value)}
-                    className={styles.formInput}
-                  />
+                  <label>Batas Limit Anggaran</label>
+                  <div className={styles.currencyInputWrap}>
+                    <span className={styles.currencyPrefix}>Rp</span>
+                    <input
+                      type="text"
+                      placeholder="5.000.000"
+                      value={formLimit}
+                      onChange={(e) => setFormLimit(formatRupiahInput(e.target.value))}
+                      className={styles.formInputCurrency}
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.modalFooter}>
@@ -599,25 +610,31 @@ export const BudgetPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Target Nominal (Rp)</label>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 100000000"
-                    value={formGoalTarget}
-                    onChange={(e) => setFormGoalTarget(e.target.value)}
-                    className={styles.formInput}
-                  />
+                  <label>Target Nominal</label>
+                  <div className={styles.currencyInputWrap}>
+                    <span className={styles.currencyPrefix}>Rp</span>
+                    <input
+                      type="text"
+                      placeholder="100.000.000"
+                      value={formGoalTarget}
+                      onChange={(e) => setFormGoalTarget(formatRupiahInput(e.target.value))}
+                      className={styles.formInputCurrency}
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Jumlah Terkumpul Saat Ini (Rp)</label>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 45000000"
-                    value={formGoalCurrent}
-                    onChange={(e) => setFormGoalCurrent(e.target.value)}
-                    className={styles.formInput}
-                  />
+                  <label>Jumlah Terkumpul Saat Ini</label>
+                  <div className={styles.currencyInputWrap}>
+                    <span className={styles.currencyPrefix}>Rp</span>
+                    <input
+                      type="text"
+                      placeholder="45.000.000"
+                      value={formGoalCurrent}
+                      onChange={(e) => setFormGoalCurrent(formatRupiahInput(e.target.value))}
+                      className={styles.formInputCurrency}
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.formGroup}>
