@@ -744,9 +744,9 @@ export const BudgetPage: React.FC = () => {
         {toastMessage && (
           <motion.div
             className={styles.toastPill}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
+            exit={{ opacity: 0, y: -30 }}
             transition={{ type: 'spring', stiffness: 450, damping: 30 }}
           >
             <Check size={16} color="var(--color-primary)" />

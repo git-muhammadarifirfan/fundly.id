@@ -689,7 +689,7 @@
 /* Toast Notification Floating Pill */
 .toastPill {
   position: fixed;
-  bottom: 80px;
+  top: 24px;
   right: 24px;
   background: var(--color-dark, #1C1C1E);
   color: #FFFFFF;
