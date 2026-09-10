@@ -217,6 +217,17 @@
   color: var(--color-text-primary);
 }
 
+.periodPill {
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  background: var(--color-primary-subtle, #F4FAD2);
+  color: var(--color-dark, #1C1C1E);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* ---- Filter Tabs ---- */
 .filterTabs {
   display: flex;

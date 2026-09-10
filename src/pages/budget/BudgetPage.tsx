@@ -349,7 +349,8 @@ export const BudgetPage: React.FC = () => {
       <div className={styles.sectionTitleRow}>
         <div className={styles.sectionHeaderTitle}>
           <Wallet size={20} style={{ color: 'var(--color-primary)' }} />
-          <h2>Alokasi Anggaran Kategori</h2>
+          <h2>Alokasi Anggaran Bulanan</h2>
+          <span className={styles.periodPill}>Per Bulan</span>
         </div>
         <div className={styles.filterTabs}>
           <button
@@ -552,7 +553,7 @@ export const BudgetPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Batas Limit Anggaran (Rp)</label>
+                  <label>Batas Limit Anggaran Per Bulan (Rp)</label>
                   <input
                     type="text"
                     placeholder="Contoh: 5.000.000"
