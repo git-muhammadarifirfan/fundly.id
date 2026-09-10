@@ -535,17 +535,14 @@ export const BudgetPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Batas Limit Anggaran</label>
-                  <div className={styles.currencyInputWrap}>
-                    <span className={styles.currencyPrefix}>Rp</span>
-                    <input
-                      type="text"
-                      placeholder="5.000.000"
-                      value={formLimit}
-                      onChange={(e) => setFormLimit(formatRupiahInput(e.target.value))}
-                      className={styles.formInputCurrency}
-                    />
-                  </div>
+                  <label>Batas Limit Anggaran (Rp)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 5.000.000"
+                    value={formLimit}
+                    onChange={(e) => setFormLimit(formatRupiahInput(e.target.value))}
+                    className={styles.formInput}
+                  />
                 </div>
 
                 <div className={styles.modalFooter}>
@@ -610,31 +607,25 @@ export const BudgetPage: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Target Nominal</label>
-                  <div className={styles.currencyInputWrap}>
-                    <span className={styles.currencyPrefix}>Rp</span>
-                    <input
-                      type="text"
-                      placeholder="100.000.000"
-                      value={formGoalTarget}
-                      onChange={(e) => setFormGoalTarget(formatRupiahInput(e.target.value))}
-                      className={styles.formInputCurrency}
-                    />
-                  </div>
+                  <label>Target Nominal (Rp)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 100.000.000"
+                    value={formGoalTarget}
+                    onChange={(e) => setFormGoalTarget(formatRupiahInput(e.target.value))}
+                    className={styles.formInput}
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Jumlah Terkumpul Saat Ini</label>
-                  <div className={styles.currencyInputWrap}>
-                    <span className={styles.currencyPrefix}>Rp</span>
-                    <input
-                      type="text"
-                      placeholder="45.000.000"
-                      value={formGoalCurrent}
-                      onChange={(e) => setFormGoalCurrent(formatRupiahInput(e.target.value))}
-                      className={styles.formInputCurrency}
-                    />
-                  </div>
+                  <label>Jumlah Terkumpul Saat Ini (Rp)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 45.000.000"
+                    value={formGoalCurrent}
+                    onChange={(e) => setFormGoalCurrent(formatRupiahInput(e.target.value))}
+                    className={styles.formInput}
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
