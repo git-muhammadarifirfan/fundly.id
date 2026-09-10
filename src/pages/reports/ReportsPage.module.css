@@ -1,0 +1,775 @@
+/* ============================================
+   Fundly.id — Mobile Optimized & Smooth Reports CSS
+   ============================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+/* ---- Header & Controls ---- */
+.headerRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .headerRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.pageTitle {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.pageSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+
+  .controls > *:last-child {
+    grid-column: span 2;
+  }
+}
+
+.periodDropdown {
+  min-width: 170px;
+}
+
+.periodPillSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.controlIcon {
+  color: var(--color-text-secondary);
+}
+
+.dropdownSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+/* ---- Mobile Select Dropdown Pill ---- */
+.mobileTabSelector {
+  position: relative;
+  width: 100%;
+}
+
+.mobileSelectInput {
+  width: 100%;
+  padding: 12px 36px 12px 14px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.mobileSelectChevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+/* ---- Desktop Tabs Bar (Smooth Touch Scroll) ---- */
+.tabsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-divider);
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.tabsBar::-webkit-scrollbar {
+  display: none;
+}
+
+.tabBtn {
+  position: relative;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  transition: color var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabBtn:hover,
+.tabBtn:focus-visible {
+  color: var(--color-text-primary);
+  font-weight: var(--font-bold);
+}
+
+.tabBtnActive {
+  color: var(--color-text-primary);
+  font-weight: var(--font-extrabold);
+}
+
+.tabIndicator {
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+/* ---- KPI Stat Cards Grid (Mobile 2x2, Desktop 4x1) ---- */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 1024px) {
+  .kpiGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+.kpiCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
+  border-radius: 16px;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-xs);
+  min-height: 104px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .kpiCard {
+    border-radius: 20px;
+    padding: var(--space-4) var(--space-5);
+    min-height: 116px;
+  }
+}
+
+.kpiTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpiLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+.kpiIconIncome {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiIconExpense {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiIconSavings {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiIconHealth {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--color-info-light);
+  color: var(--color-info);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiValueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  min-height: 32px;
+}
+
+.kpiVal {
+  font-size: var(--text-base);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 640px) {
+  .kpiVal {
+    font-size: var(--text-xl);
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.badgeGreen {
+  background: var(--color-primary-subtle);
+  color: var(--color-dark);
+}
+
+.badgeRed {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.kpiSubtext {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Cashflow Card Header ---- */
+.cashflowCard {
+  border-radius: 20px !important;
+}
+
+.chartCardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .chartCardHeader {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.chartTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+}
+
+.chartSub {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.chartHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.chartTotalBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badgeAmount {
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+}
+
+.chartContainer {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+/* Custom Tooltip */
+.customTooltip {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-xs);
+}
+
+/* Remove default Recharts SVG border/outline on hover & focus (Desktop & Mobile) */
+.chartContainer :global(.recharts-wrapper),
+.chartContainer :global(.recharts-surface),
+.chartContainer :global(.recharts-wrapper *),
+.chartContainer :global(.recharts-surface *),
+.chartContainer :global(svg),
+.donutContainer :global(.recharts-wrapper),
+.donutContainer :global(.recharts-surface),
+.donutContainer :global(.recharts-wrapper *),
+.donutContainer :global(.recharts-surface *),
+.donutContainer :global(svg),
+:global(.recharts-wrapper),
+:global(.recharts-surface),
+:global(.recharts-wrapper *),
+:global(.recharts-surface *),
+:global(.recharts-sector:focus),
+:global(.recharts-curve:focus) {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.chartContainer :global(*:focus),
+.donutContainer :global(*:focus),
+:global(.recharts-wrapper:focus) {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.tooltipTitle {
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 2px;
+}
+
+.tooltipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.tooltipName {
+  color: var(--color-text-secondary);
+}
+
+.tooltipVal {
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+/* ---- Split Grid ---- */
+.splitGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 1024px) {
+  .splitGrid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+/* Category Breakdown */
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.catRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-lg);
+}
+
+.catIconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.catMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.catTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 640px) {
+  .catTitle {
+    font-size: var(--text-sm);
+  }
+}
+
+.catSub {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.catAmountBlock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.catVal {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 640px) {
+  .catVal {
+    font-size: var(--text-sm);
+  }
+}
+
+/* My Pocket Donut */
+.pocketHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.pocketTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.seeDetailLink {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-dark, #1C1C1E);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.seeDetailLink:hover,
+.seeDetailLink:focus {
+  opacity: 1;
+  color: var(--color-dark, #1C1C1E);
+  text-decoration: underline;
+}
+
+.donutContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donutCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.centerVal {
+  font-size: var(--text-xl);
+  font-weight: var(--font-extrabold);
+  color: var(--color-dark, #1C1C1E);
+}
+
+.centerLabel {
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+  text-align: center;
+  max-width: 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pocketLegendList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.legendRow:hover,
+.legendRow:active,
+.legendRowActive {
+  background: var(--color-bg-input);
+  font-weight: var(--font-bold);
+}
+
+.legendLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.legendName {
+  color: var(--color-dark, #1C1C1E);
+  font-weight: var(--font-bold);
+}
+
+.legendPct {
+  font-weight: var(--font-extrabold);
+  color: var(--color-dark, #1C1C1E);
+}
+
+/* Budget Section Grid */
+.budgetGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .budgetGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+@media (min-width: 1200px) {
+  .budgetGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.budgetCard {
+  background: var(--color-bg-input);
+  border-radius: 16px;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border: 1px solid var(--color-divider);
+}
+
+.budgetTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.budgetTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.budgetIconCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+}
+
+.budgetName {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 640px) {
+  .budgetName {
+    font-size: var(--text-sm);
+  }
+}
+
+.statusPill {
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.statusSafe {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.statusWarning {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.statusOver {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.budgetAmounts {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  gap: var(--space-2);
+}
+
+.spentVal {
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.limitVal {
+  color: var(--color-text-tertiary);
+}
+
+.budgetTrack {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.budgetFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+}

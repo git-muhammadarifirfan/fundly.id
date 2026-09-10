@@ -1,0 +1,70 @@
+/* ============================================
+   Flat Mobile Nav with Bubble Indicator
+   ============================================ */
+
+.mobileNav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-sticky);
+  width: calc(100% - 32px);
+  max-width: 380px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  pointer-events: none;
+}
+
+/* Hide on desktop */
+@media (min-width: 1024px) {
+  .mobileNav {
+    display: none;
+  }
+}
+
+.navContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  background: #1C1C1E;
+  border-radius: 32px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+}
+
+/* Lime Green Solid Circle (NO GLOW, FLAT BUBBLE) */
+.activeBubble {
+  position: absolute;
+  top: -24px;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 60px;
+  background: #C6E83B;
+  border-radius: 50%;
+  border: 6px solid var(--color-bg); /* Matches app background to fake cutout */
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: none; /* No glow */
+}
+
+/* Nav Item Links */
+.navItem {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}

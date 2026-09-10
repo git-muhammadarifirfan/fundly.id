@@ -1,0 +1,664 @@
+/* ============================================
+   Fundly.id — Dribbble-Inspired Budget & Goals CSS
+   ============================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  position: relative;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.pageSubtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---- Hero Overview Card ---- */
+.heroCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.heroHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.heroBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 11px;
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-dark, #1C1C1E);
+}
+
+.heroBadgeIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monthPill {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  background: var(--color-bg-input);
+  color: var(--color-text-secondary);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.heroBody {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.heroMainStat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heroLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+.heroAmountRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.heroAmount {
+  font-size: clamp(var(--text-2xl), 5vw, var(--text-4xl));
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+}
+
+.heroLimit {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-semibold);
+}
+
+.heroGaugePill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: var(--color-primary-subtle, #F4FAD2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(198, 232, 59, 0.4);
+}
+
+.heroGaugePct {
+  font-size: var(--text-xl);
+  font-weight: var(--font-extrabold);
+  color: var(--color-dark, #1C1C1E);
+}
+
+.heroGaugeText {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.heroProgressBarTrack {
+  height: 8px;
+  background: var(--color-bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.heroProgressBarFill {
+  height: 100%;
+  background: var(--color-primary, #C6E83B);
+  border-radius: var(--radius-full);
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---- Section Title ---- */
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.sectionHeaderTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sectionHeaderTitle h2 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+}
+
+/* ---- Filter Tabs ---- */
+.filterTabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-card);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.filterTab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filterActive {
+  background: var(--color-primary, #C6E83B);
+  color: var(--color-dark, #1C1C1E);
+  font-weight: var(--font-bold);
+}
+
+/* ---- Budget Grid ---- */
+.budgetGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .budgetGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .budgetGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.budgetCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardTopLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.cardIconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cardTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardActionBtns {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.iconBtn:hover {
+  background: var(--color-bg-input);
+  color: var(--color-dark, #1C1C1E);
+}
+
+.iconBtnDanger:hover {
+  background: var(--color-danger-light, #FFECEB);
+  color: var(--color-danger, #FF3B30);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.statusSafe {
+  background: var(--color-primary-subtle, #F4FAD2);
+  color: var(--color-dark, #1C1C1E);
+}
+
+.statusWarning {
+  background: var(--color-warning-light, #FFF4E5);
+  color: var(--color-warning, #FF9500);
+}
+
+.statusOver {
+  background: var(--color-danger-light, #FFECEB);
+  color: var(--color-danger, #FF3B30);
+}
+
+.cardMiddle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.amountDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.spentAmount {
+  font-size: var(--text-base);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+}
+
+.limitAmount {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.pctBadge {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+}
+
+.progressTrack {
+  height: 6px;
+  background: var(--color-bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+/* ---- Goals Grid ---- */
+.goalsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .goalsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .goalsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.goalCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-xs);
+  position: relative;
+}
+
+.goalCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goalIconCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.goalStatusPill {
+  font-size: 11px;
+  font-weight: var(--font-extrabold);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-input);
+  color: var(--color-text-secondary);
+}
+
+.goalStatusDone {
+  background: var(--color-primary, #C6E83B);
+  color: var(--color-dark, #1C1C1E);
+}
+
+.goalCardTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goalDeadlineText {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.goalAmountRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.goalCurrentVal {
+  font-size: var(--text-base);
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-primary);
+}
+
+.goalTargetVal {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.goalTrack {
+  height: 6px;
+  background: var(--color-bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.goalFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.6s ease-out;
+}
+
+/* ---- Modals Styling ---- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: var(--z-modal-backdrop, 300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.modalCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.closeBtn {
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.formGroup label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 12px;
+  background: var(--color-danger-light, #FFECEB);
+  color: var(--color-danger, #FF3B30);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* Delete Confirm Modal */
+.confirmModalCard {
+  text-align: center;
+  align-items: center;
+}
+
+.warningIconCircle {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-full);
+  background: var(--color-danger-light, #FFECEB);
+  color: var(--color-danger, #FF3B30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.confirmTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.confirmDesc {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.confirmActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* Toast Notification Floating Pill */
+.toastPill {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  background: var(--color-dark, #1C1C1E);
+  color: #FFFFFF;
+  padding: 12px 20px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-toast, 500);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+@media (max-width: 768px) {
+  .toastPill {
+    bottom: 90px;
+    right: 50%;
+    transform: translateX(50%);
+    white-space: nowrap;
+  }
+}

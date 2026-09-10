@@ -1,0 +1,78 @@
+================================================================================
+                    PANDUAN INTEGRASI SUPABASE - FUNDLY.ID
+================================================================================
+
+Panduan ini berisi langkah-langkah lengkap untuk mengintegrasikan aplikasi Fundly.id
+dengan Supabase dari awal (jika Anda belum membuat database di Supabase).
+
+--------------------------------------------------------------------------------
+LANGKAH 1: MEMBUAT AKUN & PROYEK SUPABASE
+--------------------------------------------------------------------------------
+1. Buka browser dan pergi ke https://supabase.com/
+2. Klik "Start your project" atau "Sign In", lalu masuk dengan akun GitHub Anda.
+3. Di dashboard Supabase, klik tombol "New Project".
+4. Isi formulir pembuatan proyek:
+   - Organization : Pilih organisasi Anda (default)
+   - Name         : Fundly-App (atau nama pilihan Anda)
+   - Database Pass: Buat kata sandi yang kuat (SIMPAN KATA SANDI INI!)
+   - Region       : Pilih Singapore (ap-southeast-1) untuk kecepatan terbaik dari Indonesia
+   - Pricing Plan : Free Tier (Cukup untuk kebutuhan produksi awal)
+5. Klik "Create new project" dan tunggu 1-2 menit hingga proyek selesai disiapkan.
+
+--------------------------------------------------------------------------------
+LANGKAH 2: MENGAMBIL API KEYS & ENVIRONMENT VARIABLES
+--------------------------------------------------------------------------------
+1. Setelah proyek dibuat, buka menu "Project Settings" (icon roda gigi di menu samping kiri bawah).
+2. Pilih tab "API".
+3. Temukan dua data penting berikut:
+   a. Project URL   : Formatnya seperti `https://xxxxxxxxxxxxxx.supabase.co`
+   b. anon public   : String panjang (Key publik untuk client app)
+4. Buka proyek Fundly.id di IDE / VS Code Anda.
+5. Buat file bernama `.env` di folder utama proyek (sejajar dengan package.json), lalu isi:
+
+   VITE_SUPABASE_URL=https://xxxxxxxxxxxxxx.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+   (Ganti nilai di atas dengan URL & anon key asli dari dashboard Supabase Anda).
+
+--------------------------------------------------------------------------------
+LANGKAH 3: MENJALANKAN SKEMA DATABASE & TABLES (SQL MIGRATION)
+--------------------------------------------------------------------------------
+Skema database Fundly.id sudah disiapkan lengkap dengan 10 tabel, keamanan RLS (Row Level Security),
+serta trigger otomatis di folder `sql/`.
+
+1. Di dashboard Supabase Anda, klik ikon "SQL Editor" di sidebar kiri.
+2. Klik "New Query".
+3. Buka file `sql/001_create_all_tables.sql` di proyek Anda, salin SELURUH isinya,
+   lalu tempelkan (paste) ke SQL Editor Supabase.
+4. Klik tombol "Run" (atau tekan Ctrl+Enter).
+   -> Anda akan melihat pesan "Success. No rows returned". Semua tabel & RLS sudah tercipta!
+
+5. Buat query baru di SQL Editor Supabase lagi ("New Query").
+6. Buka file `sql/seed.sql` di proyek Anda, salin SELURUH isinya, lalu tempelkan.
+7. Klik "Run".
+   -> Ini akan memasukkan kategori Pemasukan & Pengeluaran standar (Makanan, Gaji, Transportasi, dll)
+      serta akun default ke dalam database.
+
+--------------------------------------------------------------------------------
+LANGKAH 4: KONFIGURASI AUTHENTICATION (OPSIONAL/DISARANKAN)
+--------------------------------------------------------------------------------
+1. Masuk ke menu "Authentication" -> "Providers" di dashboard Supabase.
+2. Pastikan provider "Email" dalam status Enabled.
+3. JIKA Anda ingin mematikan konfirmasi email saat pendaftaran (agar bisa langsung login):
+   - Masuk ke "Authentication" -> "Providers" -> "Email".
+   - Matikan centang "Confirm email".
+   - Klik "Save".
+
+--------------------------------------------------------------------------------
+LANGKAH 5: MENJALANKAN & MEMVERIFIKASI APLIKASI
+--------------------------------------------------------------------------------
+1. Di terminal komputer Anda, jalankan perintah:
+   pnpm run dev  (atau npm run dev)
+2. Buka aplikasi di browser (http://localhost:5173 atau http://localhost:5174).
+3. Aplikasi Fundly.id Anda sekarang sudah terhubung secara realtime dengan Supabase Database!
+
+================================================================================
+Pertanyaan / Kendala?
+- Jika ada error `VITE_SUPABASE_URL is missing`, pastikan nama file `.env` tepat dan dev server di-restart (`Ctrl+C` lalu `pnpm run dev`).
+================================================================================

@@ -1,0 +1,57 @@
+/* ============================================
+   App Layout Styles — Clean Responsive No-Overflow
+   ============================================ */
+
+.appContainer {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--color-bg);
+  overflow-x: hidden;
+}
+
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0; /* Prevents flex children from overflowing horizontally */
+}
+
+/* Desktop offset for Sidebar */
+@media (min-width: 1024px) {
+  .mainWrapper {
+    margin-left: var(--sidebar-width, 260px);
+  }
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.contentInner {
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-max-w, 1280px);
+  margin: 0 auto;
+  padding: var(--space-4);
+  box-sizing: border-box;
+}
+
+/* Mobile & Tablet Bottom Nav spacing */
+@media (max-width: 1023px) {
+  .contentInner {
+    padding: var(--space-4) var(--space-4) calc(var(--mobile-nav-h, 70px) + var(--space-6));
+  }
+}
+
+/* Desktop Spacing */
+@media (min-width: 1024px) {
+  .contentInner {
+    padding: var(--space-6) var(--space-8);
+  }
+}

@@ -1,0 +1,99 @@
+/* ============================================
+   Card Component Styles
+   ============================================ */
+
+.card {
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+/* ---- Variants ---- */
+.default {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-xs);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+}
+
+.dark {
+  background: var(--color-dark);
+  color: var(--color-text-on-dark);
+  border: none;
+}
+
+.glass {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ---- Padding ---- */
+.pad-none { padding: 0; }
+.pad-sm { padding: var(--space-3); }
+.pad-md { padding: var(--space-5); }
+.pad-lg { padding: var(--space-6) var(--space-8); }
+
+@media (min-width: 1024px) {
+  .pad-md { padding: var(--space-6); }
+  .pad-lg { padding: var(--space-8); }
+}
+
+/* ---- Hoverable ---- */
+.hoverable {
+  cursor: pointer;
+}
+
+.hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hoverable:active {
+  transform: translateY(0);
+}
+
+/* ---- Card Header ---- */
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: inherit;
+  line-height: var(--leading-tight);
+}
+
+.headerSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+.dark .headerSubtitle {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.primary .headerSubtitle {
+  color: rgba(28, 28, 30, 0.6);
+}
+
+.headerAction {
+  flex-shrink: 0;
+}

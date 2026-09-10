@@ -1,0 +1,14 @@
+/* Goals Page Styles */
+.page { display: flex; flex-direction: column; gap: var(--space-5); }
+.goalGrid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+@media (min-width: 640px) { .goalGrid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1280px) { .goalGrid { grid-template-columns: repeat(4, 1fr); } }
+
+.goalTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+.goalRing { position: relative; width: 64px; height: 64px; }
+.ringSvg { width: 100%; height: 100%; }
+.ringIcon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.goalPct { font-size: var(--text-2xl); font-weight: var(--font-extrabold); }
+.goalName { font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-1); }
+.goalProgress { font-size: var(--text-xs); color: var(--color-text-secondary); margin-bottom: var(--space-1); }
+.goalDeadline { font-size: var(--text-xs); color: var(--color-text-tertiary); }

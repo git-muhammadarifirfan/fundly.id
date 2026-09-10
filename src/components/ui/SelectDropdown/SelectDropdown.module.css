@@ -1,0 +1,130 @@
+/* ============================================
+   Fundly.id — Reusable SelectDropdown CSS
+   Matching Design System Template
+   ============================================ */
+
+.container {
+  position: relative;
+  display: inline-block;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 8px 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all var(--transition-fast);
+}
+
+.trigger:hover {
+  background: var(--color-bg-input);
+}
+
+.triggerOpen {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.triggerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.chevronRotate {
+  transform: rotate(180deg);
+  color: var(--color-text-primary);
+}
+
+/* Dropdown Menu Popover */
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 180px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-dropdown, 100);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 10px 12px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.option:hover {
+  background: var(--color-bg-input);
+}
+
+.optionActive {
+  background: var(--color-primary-subtle);
+  font-weight: var(--font-bold);
+  color: var(--color-dark);
+}
+
+.optionLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.checkIcon {
+  color: var(--color-dark);
+  flex-shrink: 0;
+}

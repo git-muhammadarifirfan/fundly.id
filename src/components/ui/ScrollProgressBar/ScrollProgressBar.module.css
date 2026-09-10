@@ -1,0 +1,23 @@
+/* ============================================
+   Fundly.id — Top Scroll Progress Bar Styling
+   Lime Green (#C6E83B) Theme Bar
+   ============================================ */
+
+.scrollProgressTrack {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.scrollProgressBar {
+  height: 100%;
+  background: var(--color-primary, #C6E83B);
+  box-shadow: 0 0 8px var(--color-primary-glow, rgba(198, 232, 59, 0.6));
+  border-radius: 0 2px 2px 0;
+  transition: width 100ms ease-out;
+}
