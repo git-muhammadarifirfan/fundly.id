@@ -26,9 +26,11 @@ import {
   Check,
   X,
   AlertTriangle,
+  Layers,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber/AnimatedNumber';
+import { SelectDropdown } from '../../components/ui/SelectDropdown/SelectDropdown';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { cn } from '../../utils/cn';
 import styles from './BudgetPage.module.css';
@@ -509,18 +511,19 @@ export const BudgetPage: React.FC = () => {
               <form onSubmit={handleSaveBudget} className={styles.modalForm}>
                 <div className={styles.formGroup}>
                   <label>Kategori</label>
-                  <select
+                  <SelectDropdown
+                    fullWidth
                     value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value)}
-                    className={styles.formSelect}
-                  >
-                    <option value="Makanan & Kuliner">Makanan & Kuliner</option>
-                    <option value="Transportasi & Tol">Transportasi & Tol</option>
-                    <option value="Belanja Bulanan">Belanja Bulanan</option>
-                    <option value="Hiburan & Hobi">Hiburan & Hobi</option>
-                    <option value="Tagihan & Utility">Tagihan & Utility</option>
-                    <option value="Kesehatan & Obat">Kesehatan & Obat</option>
-                  </select>
+                    onChange={(val) => setFormCategory(val)}
+                    options={[
+                      { value: 'Makanan & Kuliner', label: 'Makanan & Kuliner', icon: Utensils },
+                      { value: 'Transportasi & Tol', label: 'Transportasi & Tol', icon: Car },
+                      { value: 'Belanja Bulanan', label: 'Belanja Bulanan', icon: ShoppingCart },
+                      { value: 'Hiburan & Hobi', label: 'Hiburan & Hobi', icon: Gamepad2 },
+                      { value: 'Tagihan & Utility', label: 'Tagihan & Utility', icon: Receipt },
+                      { value: 'Kesehatan & Obat', label: 'Kesehatan & Obat', icon: Heart },
+                    ]}
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
