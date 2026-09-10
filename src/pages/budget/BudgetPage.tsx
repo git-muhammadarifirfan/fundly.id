@@ -219,7 +219,11 @@ export const BudgetPage: React.FC = () => {
       showToast(`Berhasil menambahkan anggaran ${formCategory}`);
     } else if (activeModal === 'editBudget' && editingBudgetId) {
       setBudgets(
-        budgets.map((b) => (b.id === editingBudgetId ? { ...b, category: formCategory, limit: limitNum } : b))
+        budgets.map((b) =>
+          b.id === editingBudgetId
+            ? { ...b, category: formCategory, limit: limitNum }
+            : b
+        )
       );
       showToast(`Berhasil meng-update anggaran ${formCategory}`);
     }
