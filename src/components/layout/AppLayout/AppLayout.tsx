@@ -2,12 +2,13 @@
 // Fundly.id - App Layout Component
 // ============================================
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../Sidebar/Sidebar';
 import { MobileNav } from '../MobileNav/MobileNav';
 import { Header } from '../Header/Header';
 import { ScrollProgressBar } from '../../ui/ScrollProgressBar/ScrollProgressBar';
+import { PageSkeleton } from '../../ui/Skeleton/PageSkeleton';
 import { useIsDesktop } from '../../../hooks/useMediaQuery';
 import styles from './AppLayout.module.css';
 
@@ -27,7 +28,10 @@ export const AppLayout: React.FC = () => {
 
         <main className={styles.content}>
           <div className={styles.contentInner}>
-            <Outlet />
+            {/* Sidebar & header tetap tampil; hanya konten yang menampilkan skeleton saat halaman dimuat */}
+            <Suspense fallback={<PageSkeleton />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
 

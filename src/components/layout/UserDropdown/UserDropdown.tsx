@@ -52,7 +52,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ mobileView = false }
 
   const avatar = (size: number) =>
     avatarUrl ? (
-      <img src={avatarUrl} alt={displayName} className={styles.avatarImg} referrerPolicy="no-referrer" />
+      <img src={avatarUrl} alt={displayName} className={styles.avatarImg} referrerPolicy="no-referrer" loading="lazy" decoding="async" />
     ) : (
       <User size={size} />
     );

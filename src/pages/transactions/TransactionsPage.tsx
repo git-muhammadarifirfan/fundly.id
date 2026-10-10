@@ -2,7 +2,7 @@
 // Fundly.id - Transactions Page (riwayat, pencarian, filter, detail)
 // ============================================
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,6 +59,8 @@ export const TransactionsPage: React.FC = () => {
 
   // Filter awal dapat dikirim lewat query string (drill-down dari Laporan / Akun)
   const [searchQuery, setSearchQuery] = useState('');
+  // Input tetap responsif; penyaringan data berat memakai nilai yang ditunda
+  const deferredQuery = useDeferredValue(searchQuery);
   const [filterType, setFilterType] = useState<FilterType>((searchParams.get('type') as FilterType) || 'all');
   const [filterAccount, setFilterAccount] = useState<string>(searchParams.get('account') || 'all');
   const [filterCategory, setFilterCategory] = useState<string>(searchParams.get('category') || 'all');
@@ -110,7 +112,7 @@ export const TransactionsPage: React.FC = () => {
 
   // Filter & Sort Logic
   const filteredTransactions = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     const qDigits = q.replace(/\D/g, '');
     let result = transactions.filter((tx) => {
       if (filterType !== 'all' && tx.type !== filterType) return false;
@@ -137,9 +139,9 @@ export const TransactionsPage: React.FC = () => {
       result = result.slice().reverse();
     }
     return result;
-  }, [transactions, searchQuery, filterType, filterAccount, filterCategory, startDate, endDate, sortOrder, categoriesById, accountsById]);
+  }, [transactions, deferredQuery, filterType, filterAccount, filterCategory, startDate, endDate, sortOrder, categoriesById, accountsById]);
 
-  useEffect(() => setVisibleCount(PAGE_STEP), [searchQuery, filterType, filterAccount, filterCategory, startDate, endDate, sortOrder]);
+  useEffect(() => setVisibleCount(PAGE_STEP), [deferredQuery, filterType, filterAccount, filterCategory, startDate, endDate, sortOrder]);
 
   // Group by date (hanya untuk urutan tanggal)
   const groupedTransactions = useMemo(() => {
@@ -172,7 +174,7 @@ export const TransactionsPage: React.FC = () => {
     (sortOrder !== 'newest' ? 1 : 0);
 
   // GSAP animation when filter result changes (bukan saat realtime update kecil)
-  const animKey = `${searchQuery}|${filterType}|${filterAccount}|${filterCategory}|${startDate}|${endDate}|${sortOrder}|${isLoading}`;
+  const animKey = `${deferredQuery}|${filterType}|${filterAccount}|${filterCategory}|${startDate}|${endDate}|${sortOrder}|${isLoading}`;
   useEffect(() => {
     if (!listRef.current) return;
     const items = listRef.current.querySelectorAll(`.${styles.txItem}`);

@@ -218,9 +218,13 @@ const MobileDashboard: React.FC<{
         </div>
         <div className={styles.balanceAmount}>
           <span className={styles.currencyPrefix}>Rp.</span>
-          <span className={styles.balanceValue} ref={balanceRef as React.RefObject<HTMLSpanElement>}>
-            0
-          </span>
+          {data.isLoading ? (
+            <Skeleton width="160px" height="34px" borderRadius="10px" style={{ opacity: 0.6 }} />
+          ) : (
+            <span className={styles.balanceValue} ref={balanceRef as React.RefObject<HTMLSpanElement>}>
+              0
+            </span>
+          )}
         </div>
 
         <div className={styles.balanceDetails}>
@@ -406,7 +410,11 @@ const DesktopDashboard: React.FC<{
           />
           <div className={styles.desktopBalanceAmount}>
             <span className={styles.currencyPrefix}>Rp</span>
-            <span ref={balanceRef as React.RefObject<HTMLSpanElement>}>0</span>
+            {data.isLoading ? (
+              <Skeleton width="220px" height="40px" borderRadius="12px" />
+            ) : (
+              <span ref={balanceRef as React.RefObject<HTMLSpanElement>}>0</span>
+            )}
           </div>
           <div className={styles.desktopAccountPills}>
             {data.activeAccounts.slice(0, 4).map((acc) => (

@@ -48,6 +48,7 @@ import { formatDate, formatRelativeDate, getTodayISO } from '../../utils/formatD
 import { CATEGORY_ICON_OPTIONS, COLOR_OPTIONS, DynamicIcon, readableIconColor } from '../../utils/icons';
 import { categoryBreakdown, computeTotals } from '../../utils/finance';
 import { exportReport } from '../../utils/exportReport';
+import { compressImage } from '../../utils/image';
 import { ROUTES } from '../../config/routes';
 import type { CategoryType } from '../../types/common';
 import type { Category, RecurringTemplate } from '../../types/models';
@@ -70,7 +71,8 @@ const FREQUENCY_LABEL: Record<string, string> = {
   yearly: 'Setiap tahun',
 };
 
-const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // batas bucket Storage
+const MAX_SOURCE_BYTES = 15 * 1024 * 1024; // batas file asli sebelum dikompres
 
 export const SettingsPage: React.FC = () => {
   const isMobile = useIsMobile();
@@ -119,13 +121,19 @@ export const SettingsPage: React.FC = () => {
       toast.error('File harus berupa gambar (PNG, JPG, WEBP).');
       return;
     }
-    if (file.size > MAX_AVATAR_BYTES) {
-      toast.error('Ukuran foto maksimal 2 MB.');
+    if (file.size > MAX_SOURCE_BYTES) {
+      toast.error('Ukuran foto maksimal 15 MB.');
       return;
     }
     setIsUploading(true);
     try {
-      const url = await profileApi.uploadAvatar(user.id, file);
+      // Perkecil ke 512px WebP di perangkat sebelum diunggah (hemat kuota & lebih cepat)
+      const compressed = await compressImage(file, 512);
+      if (compressed.size > MAX_AVATAR_BYTES) {
+        toast.error('Foto terlalu besar. Gunakan foto lain (maks 2 MB setelah dikompres).');
+        return;
+      }
+      const url = await profileApi.uploadAvatar(user.id, compressed);
       await updateProfile({ avatar_url: url });
       void profileApi.removeOldAvatars(user.id, url).catch(() => undefined);
       toast.success('Foto profil berhasil diperbarui!');
@@ -258,7 +266,7 @@ export const SettingsPage: React.FC = () => {
         <div className={styles.avatarRow}>
           <div className={styles.avatarPreviewWrap}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Foto profil" className={styles.avatarImg} referrerPolicy="no-referrer" />
+              <img src={avatarUrl} alt="Foto profil" className={styles.avatarImg} referrerPolicy="no-referrer" loading="lazy" decoding="async" />
             ) : (
               <div className={styles.avatarPlaceholderCircle}>
                 <User size={32} />
