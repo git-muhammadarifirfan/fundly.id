@@ -1,0 +1,449 @@
+/* ============================================
+   Auth Pages Module CSS — Fundly.id Theme
+   ============================================ */
+
+.authContainer {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F8FAF5;
+  padding: var(--space-4);
+  box-sizing: border-box;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 440px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.heroSide {
+  display: none !important;
+}
+
+/* Form Side */
+.formSide {
+  padding: 36px 36px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 480px) {
+  .formSide {
+    padding: 28px 24px;
+  }
+}
+
+.brandHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.brandLogoCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary, #C6E83B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(198, 232, 59, 0.4);
+}
+
+.logoSymbol {
+  font-weight: 800;
+  font-size: 18px;
+  color: #1C1C1E;
+}
+
+.brandName {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1C1C1E;
+  letter-spacing: -0.02em;
+}
+
+.formHeader {
+  margin-bottom: 24px;
+}
+
+.formHeader h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1C1C1E;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
+}
+
+.formHeader p {
+  font-size: 13px;
+  color: #666668;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #444446;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.forgotLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1C1C1E;
+  text-decoration: underline;
+}
+
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 14px;
+  color: #99999C;
+  pointer-events: none;
+}
+
+.formInput {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  background: #F4F4F6;
+  border: 1px solid #E5E5E8;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1C1C1E;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #C6E83B;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(198, 232, 59, 0.2);
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #88888C;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.rememberRow {
+  display: flex;
+  align-items: center;
+  margin: 2px 0 6px 0;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxContainer input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  height: 18px;
+  width: 18px;
+  background-color: #F4F4F6;
+  border: 1px solid #D0D0D5;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.checkboxContainer input:checked ~ .checkmark {
+  background-color: #1C1C1E;
+  border-color: #1C1C1E;
+}
+
+.checkboxContainer input:checked ~ .checkmark:after {
+  content: "";
+  display: block;
+  margin-left: 6px;
+  margin-top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.rememberText {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555558;
+}
+
+.dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px 0;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: #EAEAEA;
+}
+
+.dividerText {
+  font-size: 11px;
+  color: #88888C;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.socialButtonsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.socialBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #E5E5E8;
+  background: #FFFFFF;
+  color: #1C1C1E;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.socialBtn:hover {
+  background: #F9F9FB;
+  border-color: #D0D0D5;
+}
+
+.socialIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.footerLinkRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #666668;
+}
+
+.registerLink {
+  font-weight: 700;
+  color: #1C1C1E;
+  text-decoration: underline;
+}
+
+.copyrightText {
+  text-align: center;
+  font-size: 11px;
+  color: #A0A0A5;
+  margin-top: 24px;
+}
+
+/* Right Hero Visual Side */
+.heroSide {
+  background: radial-gradient(circle at 100% 0%, #E2F590 0%, #F6FBD6 40%, #EBF4F9 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+  position: relative;
+}
+
+.heroOverlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1C1C1E;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin-bottom: 28px;
+  max-width: 400px;
+}
+
+.heroHighlight {
+  color: #000000;
+  background: linear-gradient(120deg, rgba(198, 232, 59, 0.6) 0%, rgba(198, 232, 59, 0) 100%);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.illustrationWrap {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.heroImg {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.04));
+}
+
+.successStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: auto 0;
+  gap: 12px;
+}
+
+.successCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-primary-subtle, #F4FAD2);
+  color: var(--color-dark, #1C1C1E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+/* ---- Production additions ---- */
+.inlineLinkBtn {
+  align-self: center;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1C1C1E;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.inlineLinkBtn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.socialBtn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.strengthRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.strengthTrack {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #E5E5EA;
+  overflow: hidden;
+}
+
+.strengthFill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.legalLinks {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #A0A0A5;
+}
+
+.legalLinks a {
+  color: #666668;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.legalLinks a:hover {
+  color: #1C1C1E;
+  text-decoration: underline;
+}
+
+.legalLinks + .copyrightText {
+  margin-top: 8px;
+}
+
+.inlineLegalLink {
+  color: #1C1C1E;
+  font-weight: 700;
+  text-decoration: underline;
+}
