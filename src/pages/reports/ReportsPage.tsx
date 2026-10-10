@@ -1,10 +1,10 @@
 // ============================================
-// Fundly.id — Glitch-Free Reports Page with GSAP Animated Numbers
-// Fix Horizontal Layout Shift on "Anggaran & Target" Tab Click
-// GSAP Count-Up Active Across All Tabs
+// Fundly.id — Reports Page (data real-time dari Supabase)
 // ============================================
 
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   AreaChart,
   Area,
@@ -24,23 +24,53 @@ import {
   TrendingDown,
   Wallet,
   Layers,
-  Utensils,
-  ShoppingCart,
-  Car,
-  Receipt,
   ShieldCheck,
   Target,
   PiggyBank,
   Briefcase,
-  DollarSign,
-  Award,
+  Receipt,
+  FileText,
+  FileSpreadsheet,
+  Sheet,
+  BarChart3,
 } from 'lucide-react';
+import { endOfMonth, endOfWeek, parseISO, startOfMonth, startOfWeek, subMonths } from 'date-fns';
 import { Card, CardHeader } from '../../components/ui/Card/Card';
 import { Button } from '../../components/ui/Button/Button';
+import { Modal } from '../../components/ui/Modal/Modal';
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber/AnimatedNumber';
 import { SelectDropdown } from '../../components/ui/SelectDropdown/SelectDropdown';
+import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
+import { Skeleton } from '../../components/ui/Skeleton/Skeleton';
+import { DataError } from '../../components/ui/DataError/DataError';
 import { useIsMobile } from '../../hooks/useMediaQuery';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { useAccountMap, useCategoryMap, useFinanceStatus } from '../../hooks/useFinance';
+import { useFinanceStore } from '../../stores/financeStore';
+import { useAuthStore } from '../../stores/authStore';
+import { formatCompact, formatCurrency } from '../../utils/formatCurrency';
+import { MONTHS_SHORT, formatDate, formatMonthYear, toISODate } from '../../utils/formatDate';
+import {
+  budgetHealth,
+  buildSeries,
+  categoryBreakdown,
+  computeTotals,
+  daysInRange,
+  elapsedDaysInRange,
+  filterByRange,
+  formatDeadline,
+  formatPctChange,
+  goalProjection,
+  pctChange,
+  previousRange,
+  spentForBudget,
+  totalBalance,
+  type CategoryBreakdownItem,
+  type DateRangeISO,
+  type Granularity,
+} from '../../utils/finance';
+import { exportReport, type ExportFormat } from '../../utils/exportReport';
+import { DynamicIcon, readableIconColor } from '../../utils/icons';
+import { ROUTES } from '../../config/routes';
 import styles from './ReportsPage.module.css';
 
 const REPORT_TABS = [
@@ -52,120 +82,315 @@ const REPORT_TABS = [
   { id: 'goals', label: 'Target Finansial' },
 ];
 
-const PERIOD_OPTIONS = [
-  { value: 'this-week', label: 'Minggu Ini' },
-  { value: 'this-month', label: 'Bulan Ini (Okt 2026)' },
-  { value: '01-2026', label: 'Januari 2026' },
-  { value: '02-2026', label: 'Februari 2026' },
-  { value: '03-2026', label: 'Maret 2026' },
-  { value: '04-2026', label: 'April 2026' },
-  { value: '05-2026', label: 'Mei 2026' },
-  { value: '06-2026', label: 'Juni 2026' },
-  { value: '07-2026', label: 'Juli 2026' },
-  { value: '08-2026', label: 'Agustus 2026' },
-  { value: '09-2026', label: 'September 2026' },
-  { value: '10-2026', label: 'Oktober 2026' },
-  { value: '11-2026', label: 'November 2026' },
-  { value: '12-2026', label: 'Desember 2026' },
-  { value: 'this-year', label: 'Tahun Ini (2026)' },
-];
-
 const GRANULARITY_OPTIONS = [
-  { value: 'harian', label: 'Harian' },
-  { value: 'mingguan', label: 'Mingguan' },
-  { value: 'bulanan', label: 'Bulanan' },
+  { value: 'daily', label: 'Harian' },
+  { value: 'weekly', label: 'Mingguan' },
+  { value: 'monthly', label: 'Bulanan' },
 ];
 
-// ---- Overview Cashflow Chart Data ----
-const DAILY_CASHFLOW_DATA = [
-  { day: '10 Oct', income: 24000000, expense: 12000000, savings: 12000000 },
-  { day: '11 Oct', income: 26000000, expense: 14000000, savings: 12000000 },
-  { day: '12 Oct', income: 38000000, expense: 19000000, savings: 19000000 },
-  { day: '13 Oct', income: 42000000, expense: 21000000, savings: 21000000 },
-  { day: '14 Oct', income: 39000000, expense: 18000000, savings: 21000000 },
-  { day: '15 Oct', income: 45000000, expense: 22000000, savings: 23000000 },
-  { day: '16 Oct', income: 41000000, expense: 17000000, savings: 24000000 },
-  { day: '17 Oct', income: 52000000, expense: 25000000, savings: 27000000 },
-  { day: '18 Oct', income: 48000000, expense: 20000000, savings: 28000000 },
-  { day: '19 Oct', income: 55000000, expense: 26000000, savings: 29000000 },
-  { day: '20 Oct', income: 58000000, expense: 27000000, savings: 31000000 },
-];
+const PIE_COLORS = ['#C6E83B', '#1C1C1E', '#6E6E73', '#AEAEB2', '#E5E5EA'];
 
-// ---- Income Sources Breakdown ----
-const INCOME_SOURCES = [
-  { name: 'Gaji Bulanan & Bonus', tag: 'Pekerjaan Utama', amount: 18000000, pct: 72, color: '#C6E83B', icon: Briefcase },
-  { name: 'Freelance & Projects', tag: 'Sampingan', amount: 5000000, pct: 20, color: '#1C1C1E', icon: DollarSign },
-  { name: 'Investasi & Dividen', tag: 'Pasif', amount: 2000000, pct: 8, color: '#6E6E73', icon: TrendingUp },
-];
+function resolvePeriod(value: string, today = new Date()): { range: DateRangeISO; label: string } {
+  switch (value) {
+    case 'this-week':
+      return {
+        range: { start: toISODate(startOfWeek(today, { weekStartsOn: 1 })), end: toISODate(endOfWeek(today, { weekStartsOn: 1 })) },
+        label: 'Minggu Ini',
+      };
+    case 'this-month':
+      return { range: { start: toISODate(startOfMonth(today)), end: toISODate(endOfMonth(today)) }, label: 'Bulan Ini' };
+    case 'last-3m':
+      return { range: { start: toISODate(startOfMonth(subMonths(today, 2))), end: toISODate(endOfMonth(today)) }, label: '3 Bulan Terakhir' };
+    case 'last-6m':
+      return { range: { start: toISODate(startOfMonth(subMonths(today, 5))), end: toISODate(endOfMonth(today)) }, label: '6 Bulan Terakhir' };
+    case 'last-12m':
+      return { range: { start: toISODate(startOfMonth(subMonths(today, 11))), end: toISODate(endOfMonth(today)) }, label: '12 Bulan Terakhir' };
+    case 'this-year':
+      return { range: { start: `${today.getFullYear()}-01-01`, end: `${today.getFullYear()}-12-31` }, label: `Tahun ${today.getFullYear()}` };
+    case 'last-year': {
+      const y = today.getFullYear() - 1;
+      return { range: { start: `${y}-01-01`, end: `${y}-12-31` }, label: `Tahun ${y}` };
+    }
+    default: {
+      // Format "YYYY-MM"
+      const [y, m] = value.split('-').map(Number);
+      const d = new Date(y, m - 1, 1);
+      return { range: { start: toISODate(startOfMonth(d)), end: toISODate(endOfMonth(d)) }, label: formatMonthYear(y, m - 1) };
+    }
+  }
+}
 
-// ---- Expense Breakdown ----
-const EXPENSE_CATEGORIES = [
-  { name: 'Makanan & Kuliner', tag: 'Kebutuhan Utama', amount: 4550000, pct: 35, color: '#C6E83B', icon: Utensils },
-  { name: 'Belanja Bulanan', tag: 'Groceries', amount: 3250000, pct: 25, color: '#1C1C1E', icon: ShoppingCart },
-  { name: 'Transportasi & Bensin', tag: 'Operasional', amount: 2600000, pct: 20, color: '#6E6E73', icon: Car },
-  { name: 'Tagihan & Subskripsi', tag: 'Rutin', amount: 1560000, pct: 12, color: '#C6E83B', icon: Receipt },
-  { name: 'Hiburan & Gaya Hidup', tag: 'Sekunder', amount: 1040000, pct: 8, color: '#1C1C1E', icon: Layers },
-];
-
-// ---- Savings Allocations ----
-const SAVINGS_ALLOCATIONS = [
-  { name: 'Dana Darurat (6x Gaji)', amount: 45000000, target: 60000000, pct: 75, color: '#C6E83B', icon: PiggyBank },
-  { name: 'Investasi Saham & Reeksadana', amount: 25000000, target: 40000000, pct: 62, color: '#1C1C1E', icon: TrendingUp },
-  { name: 'Tabungan DP Rumah', amount: 35000000, target: 100000000, pct: 35, color: '#6E6E73', icon: Target },
-];
-
-// ---- Donut Pie Data ----
-const PIE_DATA = [
-  { name: 'Kebutuhan Utama', value: 50, color: '#C6E83B' },
-  { name: 'Tabungan & Asset', value: 25, color: '#1C1C1E' },
-  { name: 'Investasi', value: 15, color: '#6E6E73' },
-  { name: 'Gaya Hidup', value: 10, color: '#AEAEB2' },
-];
-
-// ---- Budgets Data ----
-const DEMO_BUDGETS = [
-  { id: '1', category: 'Makanan & Kuliner', spent: 4550000, limit: 6000000, icon: Utensils },
-  { id: '2', category: 'Belanja Bulanan', spent: 3250000, limit: 4000000, icon: ShoppingCart },
-  { id: '3', category: 'Transportasi & Bensin', spent: 2600000, limit: 2500000, icon: Car },
-  { id: '4', category: 'Langganan & Tagihan', spent: 1560000, limit: 2000000, icon: Receipt },
-];
-
-// ---- Financial Goals Data ----
-const DEMO_GOALS = [
-  { id: '1', name: 'Dana Darurat 6 Bulan', current: 45000000, target: 60000000, date: 'Desember 2026', icon: ShieldCheck },
-  { id: '2', name: 'Beli Mobil Impian', current: 65000000, target: 100000000, date: 'Juni 2027', icon: Car },
-  { id: '3', name: 'Liburan Jepang 2027', current: 16000000, target: 20000000, date: 'Maret 2027', icon: Award },
-];
+function suggestGranularity(range: DateRangeISO): Granularity {
+  const days = daysInRange(range);
+  if (days <= 31) return 'daily';
+  if (days <= 120) return 'weekly';
+  return 'monthly';
+}
 
 export const ReportsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const { isLoading, isError, error, reload } = useFinanceStatus();
+  const transactions = useFinanceStore((s) => s.transactions);
+  const accounts = useFinanceStore((s) => s.accounts);
+  const budgets = useFinanceStore((s) => s.budgets);
+  const goals = useFinanceStore((s) => s.goals);
+  const profile = useAuthStore((s) => s.profile);
+  const categoriesById = useCategoryMap();
+  const accountsById = useAccountMap();
+
   const [activeTab, setActiveTab] = useState('overview');
   const [periodVal, setPeriodVal] = useState('this-month');
-  const [granularityVal, setGranularityVal] = useState('harian');
+  const [granularityVal, setGranularityVal] = useState<Granularity>('daily');
+  const [showExport, setShowExport] = useState(false);
+  const [exporting, setExporting] = useState<ExportFormat | null>(null);
   const tabsContainerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
 
-  const totalIncome = 25000000;
-  const totalExpense = 13000000;
-  const netSavings = totalIncome - totalExpense;
+  const today = new Date();
+
+  const periodOptions = useMemo(() => {
+    const months = Array.from({ length: 12 }, (_, i) => {
+      const d = subMonths(new Date(), i + 1);
+      return { value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: formatMonthYear(d.getFullYear(), d.getMonth()) };
+    });
+    const now = new Date();
+    return [
+      { value: 'this-week', label: 'Minggu Ini' },
+      { value: 'this-month', label: `Bulan Ini (${MONTHS_SHORT[now.getMonth()]} ${now.getFullYear()})` },
+      ...months,
+      { value: 'last-3m', label: '3 Bulan Terakhir' },
+      { value: 'last-6m', label: '6 Bulan Terakhir' },
+      { value: 'last-12m', label: '12 Bulan Terakhir' },
+      { value: 'this-year', label: `Tahun Ini (${now.getFullYear()})` },
+      { value: 'last-year', label: `Tahun Lalu (${now.getFullYear() - 1})` },
+    ];
+  }, []);
+
+  const { range, label: periodLabel } = useMemo(() => resolvePeriod(periodVal), [periodVal]);
+  const prevRange = useMemo(() => previousRange(range), [range]);
+
+  // Sesuaikan granularitas otomatis saat periode berubah
+  useEffect(() => setGranularityVal(suggestGranularity(range)), [range]);
+
+  // ---- Derived report data ----
+  const report = useMemo(() => {
+    const totals = computeTotals(transactions, range);
+    const prev = computeTotals(transactions, prevRange);
+    const series = buildSeries(transactions, range, granularityVal);
+    let running = 0;
+    const cumulative = series.map((p) => {
+      running += p.savings;
+      return { ...p, cumulative: running };
+    });
+    const expenseBreakdown = categoryBreakdown(transactions, categoriesById, 'expense', range);
+    const incomeBreakdown = categoryBreakdown(transactions, categoriesById, 'income', range);
+    const prevExpenseMap = new Map(categoryBreakdown(transactions, categoriesById, 'expense', prevRange).map((c) => [c.id, c.amount]));
+    const prevIncomeMap = new Map(categoryBreakdown(transactions, categoriesById, 'income', prevRange).map((c) => [c.id, c.amount]));
+    const inRange = filterByRange(transactions, range);
+    const elapsed = Math.max(1, elapsedDaysInRange(range));
+    const largestExpense = inRange
+      .filter((t) => t.type === 'expense' && t.status === 'cleared')
+      .reduce<typeof inRange[number] | null>((max, t) => (!max || t.amount > max.amount ? t : max), null);
+    const savingsRate = totals.income > 0 ? Math.round((totals.net / totals.income) * 100) : 0;
+    const prevSavingsRate = prev.income > 0 ? Math.round((prev.net / prev.income) * 100) : 0;
+
+    return {
+      totals,
+      prev,
+      series: cumulative,
+      expenseBreakdown,
+      incomeBreakdown,
+      prevExpenseMap,
+      prevIncomeMap,
+      inRange,
+      elapsed,
+      largestExpense,
+      savingsRate,
+      prevSavingsRate,
+      incomeChange: pctChange(totals.income, prev.income),
+      expenseChange: pctChange(totals.expense, prev.expense),
+      netChange: pctChange(totals.net, prev.net),
+    };
+  }, [transactions, range, prevRange, granularityVal, categoriesById]);
+
+  const pieData = useMemo(() => {
+    const items = report.expenseBreakdown;
+    const top = items.slice(0, 4).map((c, i) => ({ name: c.name, value: c.percentage, amount: c.amount, color: PIE_COLORS[i] }));
+    if (items.length > 4) {
+      const rest = items.slice(4);
+      top.push({
+        name: 'Lainnya',
+        value: rest.reduce((s, c) => s + c.percentage, 0),
+        amount: rest.reduce((s, c) => s + c.amount, 0),
+        color: PIE_COLORS[4],
+      });
+    }
+    return top;
+  }, [report.expenseBreakdown]);
+
+  // Anggaran: jika periode adalah satu bulan, pakai bulan itu; selain itu bulan berjalan
+  const budgetPeriod = useMemo(() => {
+    const start = parseISO(range.start);
+    const isSingleMonth = range.start.slice(0, 7) === range.end.slice(0, 7);
+    const ref = isSingleMonth ? start : today;
+    return { month: ref.getMonth() + 1, year: ref.getFullYear() };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [range]);
+
+  const budgetRows = useMemo(
+    () =>
+      budgets
+        .filter((b) => b.month === budgetPeriod.month && b.year === budgetPeriod.year)
+        .map((b) => {
+          const cat = categoriesById.get(b.category_id);
+          const spent = spentForBudget(transactions, b);
+          return { ...b, spent, name: cat?.name || 'Kategori dihapus', icon: cat?.icon || 'tag', health: budgetHealth(spent, b.amount_limit) };
+        })
+        .sort((a, b) => b.spent / b.amount_limit - a.spent / a.amount_limit),
+    [budgets, budgetPeriod, categoriesById, transactions],
+  );
+
+  const netWorth = totalBalance(accounts);
+  const totalGoalsSaved = goals.reduce((s, g) => s + g.current_amount, 0);
+  const totalGoalsTarget = goals.reduce((s, g) => s + g.target_amount, 0);
 
   const handleTabClick = (tabId: string, e: React.MouseEvent<HTMLButtonElement>) => {
     setActiveTab(tabId);
-    // ONLY scroll internal tabsBar container horizontally (Never scroll body/window to the right!)
     const container = tabsContainerRef.current;
     const target = e.currentTarget;
     if (container && target) {
       const containerRect = container.getBoundingClientRect();
       const targetRect = target.getBoundingClientRect();
-      const offset = targetRect.left - containerRect.left - (containerRect.width / 2) + (targetRect.width / 2);
+      const offset = targetRect.left - containerRect.left - containerRect.width / 2 + targetRect.width / 2;
       container.scrollBy({ left: offset, behavior: 'smooth' });
     }
   };
 
-  const handleExport = () => {
-    alert('Laporan berhasil diekspor!');
+  const handleExport = async (format: ExportFormat) => {
+    if (report.inRange.length === 0) {
+      toast.error('Tidak ada transaksi pada periode ini untuk diekspor.');
+      return;
+    }
+    setExporting(format);
+    try {
+      await exportReport(format, {
+        title: 'Laporan Keuangan',
+        periodLabel,
+        range,
+        totals: report.totals,
+        expenseBreakdown: report.expenseBreakdown,
+        incomeBreakdown: report.incomeBreakdown,
+        transactions: report.inRange,
+        categoriesById,
+        accountsById,
+        ownerName: profile?.full_name || undefined,
+      });
+      toast.success(`Laporan ${format.toUpperCase()} berhasil diunduh`);
+      setShowExport(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal membuat file laporan. Silakan coba lagi.');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const drillDown = (categoryId: string, type: 'income' | 'expense') => {
+    const params = new URLSearchParams({ type, from: range.start, to: range.end });
+    params.set('category', categoryId);
+    navigate(`${ROUTES.TRANSACTIONS}?${params.toString()}`);
   };
 
   const mobileTabOptions = REPORT_TABS.map((t) => ({ value: t.id, label: t.label }));
+  const vsLabel = 'vs periode lalu';
+  const diffText = (cur: number, prev: number) => {
+    const diff = cur - prev;
+    return `${diff >= 0 ? '+' : '-'}Rp ${formatCompact(Math.abs(diff))} ${vsLabel}`;
+  };
+  const changeBadge = (change: number | null, goodWhenUp: boolean) => {
+    const isGood = change === null ? goodWhenUp : goodWhenUp ? change >= 0 : change <= 0;
+    return <span className={cn(styles.badge, isGood ? styles.badgeGreen : styles.badgeRed)}>{formatPctChange(change)}</span>;
+  };
+
+  const chartMargin = { top: 15, right: 10, left: isMobile ? -15 : -5, bottom: 0 };
+  const yTick = (v: number) => (v === 0 ? '0' : formatCompact(v));
+  const hasData = report.inRange.length > 0;
+
+  const renderCategoryList = (items: CategoryBreakdownItem[], type: 'income' | 'expense', prevMap: Map<string, number>) =>
+    items.length === 0 ? (
+      <div className={styles.emptyInline}>Belum ada {type === 'income' ? 'pemasukan' : 'pengeluaran'} pada periode ini.</div>
+    ) : (
+      <div className={styles.categoryList}>
+        {items.map((cat) => {
+          const change = pctChange(cat.amount, prevMap.get(cat.id) || 0);
+          return (
+            <button key={cat.id} type="button" className={cn(styles.catRow, styles.catRowButton)} onClick={() => drillDown(cat.id, type)}>
+              <div className={styles.catIconBox} style={{ background: `${cat.color}18` }}>
+                <DynamicIcon name={cat.icon} size={18} color={readableIconColor(cat.color)} />
+              </div>
+              <div className={styles.catMeta}>
+                <span className={styles.catTitle}>{cat.name}</span>
+                <span className={styles.catSub}>
+                  {cat.count} transaksi · {formatPctChange(change)} {vsLabel}
+                </span>
+              </div>
+              <div className={styles.catAmountBlock}>
+                <AnimatedNumber value={cat.amount} className={styles.catVal} />
+                <span className={cn(styles.badge, type === 'income' ? styles.badgeGreen : styles.badgeRed)}>{cat.percentage}%</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+
+  const renderAreaChart = (dataKey: 'income' | 'expense' | 'cumulative' | 'both', height: number) => (
+    <div className={styles.chartContainer}>
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart data={report.series} margin={chartMargin}>
+          <defs>
+            <linearGradient id="incomeGradLime" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#C6E83B" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#C6E83B" stopOpacity={0.01} />
+            </linearGradient>
+            <linearGradient id="expenseGradBlack" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#1C1C1E" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#1C1C1E" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-divider)" />
+          <XAxis dataKey="label" stroke="#A0A0AB" fontSize={isMobile ? 10 : 12} tickLine={false} axisLine={false} minTickGap={12} />
+          <YAxis stroke="#A0A0AB" fontSize={isMobile ? 10 : 11} tickLine={false} axisLine={false} tickFormatter={yTick} width={56} />
+          <Tooltip content={<CustomTooltip />} />
+          {(dataKey === 'income' || dataKey === 'both') && (
+            <Area type="monotone" dataKey="income" name="Pemasukan" stroke="#C6E83B" strokeWidth={3} fillOpacity={1} fill="url(#incomeGradLime)" isAnimationActive={false} />
+          )}
+          {(dataKey === 'expense' || dataKey === 'both') && (
+            <Area type="monotone" dataKey="expense" name="Pengeluaran" stroke="#1C1C1E" strokeWidth={3} fillOpacity={1} fill="url(#expenseGradBlack)" isAnimationActive={false} />
+          )}
+          {dataKey === 'cumulative' && (
+            <Area type="monotone" dataKey="cumulative" name="Akumulasi Tabungan" stroke="#C6E83B" strokeWidth={3} fillOpacity={1} fill="url(#incomeGradLime)" isAnimationActive={false} />
+          )}
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+
+  const kpi = (labelText: string, icon: React.ReactNode, iconClass: string, value: React.ReactNode, badge: React.ReactNode, sub: string) => (
+    <div className={styles.kpiCard}>
+      <div className={styles.kpiTopRow}>
+        <span className={styles.kpiLabel}>{labelText}</span>
+        <div className={iconClass}>{icon}</div>
+      </div>
+      <div className={styles.kpiValueRow}>
+        {value}
+        {badge}
+      </div>
+      <span className={styles.kpiSubtext}>{sub}</span>
+    </div>
+  );
+
+  if (isError) return <DataError message={error} onRetry={() => void reload()} />;
 
   return (
     <div className={styles.page}>
@@ -173,27 +398,19 @@ export const ReportsPage: React.FC = () => {
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.pageTitle}>Laporan Keuangan</h1>
-          <p className={styles.pageSubtitle}>Analisis arus kas & alokasi anggaran bulanan</p>
+          <p className={styles.pageSubtitle}>
+            {formatDate(range.start, 'dd MMM yyyy')} – {formatDate(range.end, 'dd MMM yyyy')}
+          </p>
         </div>
 
         <div className={styles.controls}>
           <div className={styles.periodDropdown}>
-            <SelectDropdown
-              options={PERIOD_OPTIONS}
-              value={periodVal}
-              onChange={setPeriodVal}
-              icon={<Calendar size={15} />}
-              fullWidth
-            />
+            <SelectDropdown options={periodOptions} value={periodVal} onChange={setPeriodVal} icon={<Calendar size={15} />} fullWidth />
           </div>
 
-          <SelectDropdown
-            options={GRANULARITY_OPTIONS}
-            value={granularityVal}
-            onChange={setGranularityVal}
-          />
+          <SelectDropdown options={GRANULARITY_OPTIONS} value={granularityVal} onChange={(v) => setGranularityVal(v as Granularity)} />
 
-          <Button variant="primary" size="md" icon={<Download size={16} />} onClick={handleExport}>
+          <Button variant="primary" size="md" icon={<Download size={16} />} onClick={() => setShowExport(true)}>
             Ekspor
           </Button>
         </div>
@@ -202,24 +419,14 @@ export const ReportsPage: React.FC = () => {
       {/* Navigation Tabs */}
       {isMobile ? (
         <div className={styles.mobileTabWrapper}>
-          <SelectDropdown
-            options={mobileTabOptions}
-            value={activeTab}
-            onChange={setActiveTab}
-            prefixLabel="Laporan"
-            fullWidth
-          />
+          <SelectDropdown options={mobileTabOptions} value={activeTab} onChange={setActiveTab} prefixLabel="Laporan" fullWidth />
         </div>
       ) : (
         <div className={styles.tabsBar} ref={tabsContainerRef}>
           {REPORT_TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <button
-                key={tab.id}
-                onClick={(e) => handleTabClick(tab.id, e)}
-                className={cn(styles.tabBtn, isActive && styles.tabBtnActive)}
-              >
+              <button key={tab.id} onClick={(e) => handleTabClick(tab.id, e)} className={cn(styles.tabBtn, isActive && styles.tabBtnActive)}>
                 {tab.label}
                 {isActive && <div className={styles.tabIndicator} />}
               </button>
@@ -228,604 +435,441 @@ export const ReportsPage: React.FC = () => {
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 1: RINGKASAN (OVERVIEW) */}
-      {/* ============================================================ */}
-      {activeTab === 'overview' && (
+      {isLoading ? (
         <>
-          {/* KPI Stat Cards Grid with GSAP Animated Numbers */}
           <div className={styles.kpiGrid}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Total Pemasukan</span>
-                <div className={styles.kpiIconIncome}>
-                  <TrendingUp size={16} />
-                </div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`inc-${activeTab}`} value={totalIncome} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>+26%</span>
-              </div>
-              <span className={styles.kpiSubtext}>+Rp 3,2JT vs bln lalu</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Total Pengeluaran</span>
-                <div className={styles.kpiIconExpense}>
-                  <TrendingDown size={16} />
-                </div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`exp-${activeTab}`} value={totalExpense} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeRed)}>-15%</span>
-              </div>
-              <span className={styles.kpiSubtext}>-Rp 1,1JT vs bln lalu</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Pendapatan Bersih</span>
-                <div className={styles.kpiIconSavings}>
-                  <Wallet size={16} />
-                </div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`net-${activeTab}`} value={netSavings} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>+18%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Surplus bulan ini</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Rasio Hemat</span>
-                <div className={styles.kpiIconHealth}>
-                  <ShieldCheck size={16} />
-                </div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`rate-${activeTab}`} value={48} isCurrency={false} suffix="%" className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>Aman</span>
-              </div>
-              <span className={styles.kpiSubtext}>Target min. 30%</span>
-            </div>
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} height="110px" borderRadius="20px" />
+            ))}
           </div>
-
-          {/* Main Cashflow Area Chart Card */}
-          <Card padding="lg" className={styles.cashflowCard}>
-            <div className={styles.chartCardHeader}>
-              <div>
-                <h3 className={styles.chartTitle}>Arus Kas Harian</h3>
-                <p className={styles.chartSub}>Pemasukan vs Pengeluaran</p>
+          <Skeleton height="320px" borderRadius="20px" />
+        </>
+      ) : (
+        <>
+          {/* TAB 1: RINGKASAN */}
+          {activeTab === 'overview' && (
+            <>
+              <div className={styles.kpiGrid}>
+                {kpi(
+                  'Total Pemasukan',
+                  <TrendingUp size={16} />,
+                  styles.kpiIconIncome,
+                  <AnimatedNumber value={report.totals.income} className={styles.kpiVal} />,
+                  changeBadge(report.incomeChange, true),
+                  diffText(report.totals.income, report.prev.income),
+                )}
+                {kpi(
+                  'Total Pengeluaran',
+                  <TrendingDown size={16} />,
+                  styles.kpiIconExpense,
+                  <AnimatedNumber value={report.totals.expense} className={styles.kpiVal} />,
+                  changeBadge(report.expenseChange, false),
+                  diffText(report.totals.expense, report.prev.expense),
+                )}
+                {kpi(
+                  'Pendapatan Bersih',
+                  <Wallet size={16} />,
+                  styles.kpiIconSavings,
+                  <AnimatedNumber value={report.totals.net} className={styles.kpiVal} />,
+                  changeBadge(report.netChange, true),
+                  report.totals.net >= 0 ? `Surplus ${periodLabel.toLowerCase()}` : `Defisit ${periodLabel.toLowerCase()}`,
+                )}
+                {kpi(
+                  'Rasio Hemat',
+                  <ShieldCheck size={16} />,
+                  styles.kpiIconHealth,
+                  <AnimatedNumber value={report.savingsRate} isCurrency={false} suffix="%" className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, report.savingsRate >= 20 ? styles.badgeGreen : styles.badgeRed)}>
+                    {report.savingsRate >= 30 ? 'Sehat' : report.savingsRate >= 20 ? 'Cukup' : 'Waspada'}
+                  </span>,
+                  'Target ideal min. 20–30%',
+                )}
               </div>
 
-              <div className={styles.chartHeaderRight}>
-                <div className={styles.chartTotalBadge}>
-                  <AnimatedNumber key={`tot-${activeTab}`} value={totalIncome} className={styles.badgeAmount} />
-                  <span className={cn(styles.badge, styles.badgeGreen)}>+15% ↗</span>
+              <Card padding="lg" className={styles.cashflowCard}>
+                <div className={styles.chartCardHeader}>
+                  <div>
+                    <h3 className={styles.chartTitle}>
+                      Arus Kas {GRANULARITY_OPTIONS.find((g) => g.value === granularityVal)?.label}
+                    </h3>
+                    <p className={styles.chartSub}>Pemasukan vs Pengeluaran · {periodLabel}</p>
+                  </div>
+                  <div className={styles.chartHeaderRight}>
+                    <div className={styles.chartTotalBadge}>
+                      <AnimatedNumber value={report.totals.net} className={styles.badgeAmount} />
+                      <span className={cn(styles.badge, report.totals.net >= 0 ? styles.badgeGreen : styles.badgeRed)}>
+                        {report.totals.net >= 0 ? 'Surplus ↗' : 'Defisit ↘'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+                {hasData ? (
+                  renderAreaChart('both', isMobile ? 220 : 300)
+                ) : (
+                  <EmptyState
+                    icon={BarChart3}
+                    title="Belum Ada Data"
+                    description={`Tidak ada transaksi pada periode ${periodLabel.toLowerCase()}. Coba pilih periode lain.`}
+                  />
+                )}
+              </Card>
+
+              <div className={styles.splitGrid}>
+                <Card padding="lg">
+                  <CardHeader title="Kategori Pengeluaran Terbesar" subtitle="Klik kategori untuk melihat transaksinya" icon={<Layers size={18} />} />
+                  {renderCategoryList(report.expenseBreakdown.slice(0, 6), 'expense', report.prevExpenseMap)}
+                </Card>
+
+                <Card padding="lg">
+                  <div className={styles.pocketHeader}>
+                    <h3 className={styles.pocketTitle}>Komposisi Pengeluaran</h3>
+                    <button className={styles.seeDetailLink} onClick={() => navigate(ROUTES.BUDGET)}>
+                      Atur Anggaran
+                    </button>
+                  </div>
+
+                  {pieData.length === 0 ? (
+                    <div className={styles.emptyInline}>Belum ada pengeluaran pada periode ini.</div>
+                  ) : (
+                    <>
+                      <div className={styles.donutContainer}>
+                        <ResponsiveContainer width="100%" height={210}>
+                          <RePieChart>
+                            <Pie data={pieData} cx="50%" cy="50%" innerRadius={62} outerRadius={86} paddingAngle={4} dataKey="value" isAnimationActive={false}>
+                              {pieData.map((entry) => (
+                                <Cell key={entry.name} fill={entry.color} stroke="none" strokeWidth={0} style={{ outline: 'none' }} />
+                              ))}
+                            </Pie>
+                          </RePieChart>
+                        </ResponsiveContainer>
+                        <div className={styles.donutCenter}>
+                          <span className={styles.centerVal}>{formatCurrency(report.totals.expense, { compact: true })}</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.pocketLegendList}>
+                        {pieData.map((item) => (
+                          <div key={item.name} className={styles.legendRow} title={formatCurrency(item.amount)}>
+                            <div className={styles.legendLeft}>
+                              <span className={styles.dot} style={{ background: item.color }} />
+                              <span className={styles.legendName}>{item.name}</span>
+                            </div>
+                            <span className={styles.legendPct}>{item.value}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </Card>
               </div>
-            </div>
+            </>
+          )}
 
-            <div className={styles.chartContainer}>
-              <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
-                <AreaChart data={DAILY_CASHFLOW_DATA} margin={{ top: 15, right: 10, left: isMobile ? -25 : -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="incomeGradLime" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C6E83B" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#C6E83B" stopOpacity={0.01} />
-                    </linearGradient>
-                    <linearGradient id="expenseGradBlack" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1C1C1E" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#1C1C1E" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-divider)" />
-                  <XAxis dataKey="day" stroke="#A0A0AB" fontSize={isMobile ? 10 : 12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#A0A0AB" fontSize={isMobile ? 10 : 11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000000}M`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="income"
-                    name="Pemasukan"
-                    stroke="#C6E83B"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#incomeGradLime)"
-                    isAnimationActive={false}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="expense"
-                    name="Pengeluaran"
-                    stroke="#1C1C1E"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#expenseGradBlack)"
-                    isAnimationActive={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+          {/* TAB 2: PEMASUKAN */}
+          {activeTab === 'income' && (
+            <>
+              <div className={styles.kpiGrid}>
+                {kpi(
+                  'Total Pemasukan',
+                  <TrendingUp size={16} />,
+                  styles.kpiIconIncome,
+                  <AnimatedNumber value={report.totals.income} className={styles.kpiVal} />,
+                  changeBadge(report.incomeChange, true),
+                  diffText(report.totals.income, report.prev.income),
+                )}
+                {kpi(
+                  'Sumber Utama',
+                  <Briefcase size={16} />,
+                  styles.kpiIconIncome,
+                  <AnimatedNumber value={report.incomeBreakdown[0]?.amount || 0} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, styles.badgeGreen)}>{report.incomeBreakdown[0]?.percentage || 0}%</span>,
+                  report.incomeBreakdown[0]?.name || 'Belum ada pemasukan',
+                )}
+                {kpi(
+                  'Jumlah Transaksi',
+                  <Receipt size={16} />,
+                  styles.kpiIconSavings,
+                  <AnimatedNumber
+                    value={report.incomeBreakdown.reduce((s, c) => s + c.count, 0)}
+                    isCurrency={false}
+                    className={styles.kpiVal}
+                  />,
+                  <span className={cn(styles.badge, styles.badgeGreen)}>{report.incomeBreakdown.length} sumber</span>,
+                  'Transaksi pemasukan tercatat',
+                )}
+                {kpi(
+                  'Rata-Rata Harian',
+                  <Calendar size={16} />,
+                  styles.kpiIconHealth,
+                  <AnimatedNumber value={Math.round(report.totals.income / report.elapsed)} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, styles.badgeGreen)}>/ hari</span>,
+                  `Dari ${report.elapsed} hari berjalan`,
+                )}
+              </div>
 
-          {/* Split Grid: Category Breakdown + Donut Chart */}
-          <div className={styles.splitGrid}>
-            {/* Top Category Breakdown */}
+              <Card padding="lg">
+                <CardHeader title="Grafik Tren Pemasukan" subtitle={`Aliran pendapatan · ${periodLabel}`} icon={<TrendingUp size={18} />} />
+                {renderAreaChart('income', isMobile ? 220 : 280)}
+              </Card>
+
+              <Card padding="lg">
+                <CardHeader title="Rincian Sumber Pemasukan" subtitle="Klik kategori untuk melihat transaksinya" icon={<Briefcase size={18} />} />
+                {renderCategoryList(report.incomeBreakdown, 'income', report.prevIncomeMap)}
+              </Card>
+            </>
+          )}
+
+          {/* TAB 3: PENGELUARAN */}
+          {activeTab === 'expense' && (
+            <>
+              <div className={styles.kpiGrid}>
+                {kpi(
+                  'Total Pengeluaran',
+                  <TrendingDown size={16} />,
+                  styles.kpiIconExpense,
+                  <AnimatedNumber value={report.totals.expense} className={styles.kpiVal} />,
+                  changeBadge(report.expenseChange, false),
+                  diffText(report.totals.expense, report.prev.expense),
+                )}
+                {kpi(
+                  'Kategori Terbesar',
+                  <Layers size={16} />,
+                  styles.kpiIconExpense,
+                  <AnimatedNumber value={report.expenseBreakdown[0]?.amount || 0} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, styles.badgeRed)}>{report.expenseBreakdown[0]?.percentage || 0}%</span>,
+                  report.expenseBreakdown[0]?.name || 'Belum ada pengeluaran',
+                )}
+                {kpi(
+                  'Transaksi Terbesar',
+                  <Receipt size={16} />,
+                  styles.kpiIconSavings,
+                  <AnimatedNumber value={report.largestExpense?.amount || 0} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, styles.badgeRed)}>1x</span>,
+                  report.largestExpense
+                    ? `${report.largestExpense.note || categoriesById.get(report.largestExpense.category_id || '')?.name || 'Pengeluaran'} · ${formatDate(report.largestExpense.transaction_date, 'dd MMM')}`
+                    : 'Belum ada pengeluaran',
+                )}
+                {kpi(
+                  'Rata-Rata Harian',
+                  <Calendar size={16} />,
+                  styles.kpiIconHealth,
+                  <AnimatedNumber value={Math.round(report.totals.expense / report.elapsed)} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, styles.badgeRed)}>/ hari</span>,
+                  `Dari ${report.elapsed} hari berjalan`,
+                )}
+              </div>
+
+              <Card padding="lg">
+                <CardHeader title="Grafik Tren Pengeluaran" subtitle={`Pemakaian dana · ${periodLabel}`} icon={<TrendingDown size={18} />} />
+                {renderAreaChart('expense', isMobile ? 220 : 280)}
+              </Card>
+
+              <Card padding="lg">
+                <CardHeader title="Kategori Pengeluaran" subtitle="Dibandingkan dengan periode sebelumnya" icon={<Layers size={18} />} />
+                {renderCategoryList(report.expenseBreakdown, 'expense', report.prevExpenseMap)}
+              </Card>
+            </>
+          )}
+
+          {/* TAB 4: TABUNGAN */}
+          {activeTab === 'savings' && (
+            <>
+              <div className={styles.kpiGrid}>
+                {kpi(
+                  'Surplus Periode Ini',
+                  <PiggyBank size={16} />,
+                  styles.kpiIconIncome,
+                  <AnimatedNumber value={report.totals.net} className={styles.kpiVal} />,
+                  changeBadge(report.netChange, true),
+                  diffText(report.totals.net, report.prev.net),
+                )}
+                {kpi(
+                  'Rasio Hemat',
+                  <ShieldCheck size={16} />,
+                  styles.kpiIconHealth,
+                  <AnimatedNumber value={report.savingsRate} isCurrency={false} suffix="%" className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, report.savingsRate >= report.prevSavingsRate ? styles.badgeGreen : styles.badgeRed)}>
+                    {report.savingsRate - report.prevSavingsRate >= 0 ? '+' : ''}
+                    {report.savingsRate - report.prevSavingsRate} poin
+                  </span>,
+                  'Dibanding periode sebelumnya',
+                )}
+                {kpi(
+                  'Dana di Target Tabungan',
+                  <Target size={16} />,
+                  styles.kpiIconSavings,
+                  <AnimatedNumber value={totalGoalsSaved} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, styles.badgeGreen)}>
+                    {totalGoalsTarget > 0 ? Math.floor((totalGoalsSaved / totalGoalsTarget) * 100) : 0}%
+                  </span>,
+                  `Dari total target ${formatCurrency(totalGoalsTarget, { compact: true })}`,
+                )}
+                {kpi(
+                  'Kekayaan Bersih',
+                  <Wallet size={16} />,
+                  styles.kpiIconIncome,
+                  <AnimatedNumber value={netWorth} className={styles.kpiVal} />,
+                  <span className={cn(styles.badge, netWorth >= 0 ? styles.badgeGreen : styles.badgeRed)}>
+                    {accounts.filter((a) => a.is_active).length} akun
+                  </span>,
+                  'Total saldo seluruh akun aktif',
+                )}
+              </div>
+
+              <Card padding="lg">
+                <CardHeader title="Akumulasi Tabungan" subtitle={`Surplus kumulatif · ${periodLabel}`} icon={<PiggyBank size={18} />} />
+                {renderAreaChart('cumulative', isMobile ? 220 : 280)}
+              </Card>
+            </>
+          )}
+
+          {/* TAB 5: ANGGARAN */}
+          {activeTab === 'budget' && (
             <Card padding="lg">
               <CardHeader
-                title="Kategori Pengeluaran Terbesar"
-                subtitle="Rincian pengeluaran per sektor"
-                icon={<Layers size={18} />}
+                title="Status Anggaran Bulanan"
+                subtitle={`Batas pengeluaran per kategori · ${formatMonthYear(budgetPeriod.year, budgetPeriod.month - 1)}`}
+                icon={<Wallet size={18} />}
               />
-              <div className={styles.categoryList}>
-                {EXPENSE_CATEGORIES.map((cat) => {
-                  const IconComp = cat.icon;
-                  return (
-                    <div key={cat.name} className={styles.catRow}>
-                      <div className={styles.catIconBox} style={{ background: `${cat.color}18` }}>
-                        <IconComp size={18} style={{ color: cat.color === '#1C1C1E' ? 'var(--color-text-primary)' : cat.color }} />
-                      </div>
-                      <div className={styles.catMeta}>
-                        <span className={styles.catTitle}>{cat.name}</span>
-                        <span className={styles.catSub}>{cat.tag}</span>
-                      </div>
-                      <div className={styles.catAmountBlock}>
-                        <AnimatedNumber key={`cat-${cat.name}-${activeTab}`} value={cat.amount} className={styles.catVal} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
+              {budgetRows.length === 0 ? (
+                <EmptyState
+                  icon={Wallet}
+                  title="Belum Ada Anggaran"
+                  description="Belum ada anggaran untuk bulan ini. Atur batas pengeluaran per kategori di menu Anggaran."
+                  actionLabel="Atur Anggaran"
+                  onAction={() => navigate(ROUTES.BUDGET)}
+                />
+              ) : (
+                <div className={styles.budgetGrid}>
+                  {budgetRows.map((item) => {
+                    const pct = Math.round((item.spent / item.amount_limit) * 100);
+                    const isOver = item.health === 'over';
+                    const isWarning = item.health === 'warning';
+                    const barColor = isOver ? 'var(--color-danger)' : isWarning ? 'var(--color-warning)' : 'var(--color-primary)';
 
-            {/* Donut Chart Alokasi */}
+                    return (
+                      <div key={item.id} className={styles.budgetCard}>
+                        <div className={styles.budgetTop}>
+                          <div className={styles.budgetTitleGroup}>
+                            <div className={styles.budgetIconCircle}>
+                              <DynamicIcon name={item.icon} size={16} />
+                            </div>
+                            <span className={styles.budgetName} title={item.name}>
+                              {item.name}
+                            </span>
+                          </div>
+                          <span className={cn(styles.statusPill, isOver ? styles.statusOver : isWarning ? styles.statusWarning : styles.statusSafe)}>
+                            {isOver ? 'Kelebihan' : isWarning ? 'Waspada' : 'Aman'}
+                          </span>
+                        </div>
+
+                        <div className={styles.budgetAmounts}>
+                          <AnimatedNumber value={item.spent} className={styles.spentVal} />
+                          <span className={styles.limitVal}>
+                            dari {formatCurrency(item.amount_limit)} · {pct}%
+                          </span>
+                        </div>
+
+                        <div className={styles.budgetTrack}>
+                          <div className={styles.budgetFill} style={{ width: `${Math.min(pct, 100)}%`, background: barColor }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* TAB 6: TARGET FINANSIAL */}
+          {activeTab === 'goals' && (
             <Card padding="lg">
-              <div className={styles.pocketHeader}>
-                <h3 className={styles.pocketTitle}>Alokasi Kantong (My Pocket)</h3>
-                <button className={styles.seeDetailLink} onClick={() => navigate(ROUTES.ACCOUNTS)}>Lihat Detail</button>
-              </div>
-
-              <div className={styles.donutContainer}>
-                <ResponsiveContainer width="100%" height={210}>
-                  <RePieChart>
-                    <Pie
-                      data={PIE_DATA}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={62}
-                      outerRadius={86}
-                      paddingAngle={4}
-                      dataKey="value"
-                      isAnimationActive={false}
-                    >
-                      {PIE_DATA.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.color}
-                          stroke="none"
-                          strokeWidth={0}
-                          style={{ outline: 'none' }}
-                        />
-                      ))}
-                    </Pie>
-                  </RePieChart>
-                </ResponsiveContainer>
-                <div className={styles.donutCenter}>
-                  <span className={styles.centerVal}>100%</span>
+              <CardHeader title="Target Tabungan & Finansial" subtitle="Progres pencapaian impian Anda" icon={<Target size={18} />} />
+              {goals.length === 0 ? (
+                <EmptyState
+                  icon={Target}
+                  title="Belum Ada Target"
+                  description="Buat target tabungan untuk memantau progres impian finansial Anda."
+                  actionLabel="Buat Target"
+                  onAction={() => navigate(ROUTES.GOALS)}
+                />
+              ) : (
+                <div className={styles.categoryList}>
+                  {goals.map((goal) => {
+                    const proj = goalProjection(goal);
+                    return (
+                      <button key={goal.id} type="button" className={cn(styles.catRow, styles.catRowButton)} onClick={() => navigate(ROUTES.GOALS)}>
+                        <div className={styles.catIconBox} style={{ background: `${goal.color}22` }}>
+                          <DynamicIcon name={goal.icon} size={18} color={readableIconColor(goal.color)} />
+                        </div>
+                        <div className={styles.catMeta}>
+                          <span className={styles.catTitle}>{goal.name}</span>
+                          <span className={styles.catSub}>
+                            {formatDeadline(goal.deadline)} · {formatCurrency(goal.current_amount)} / {formatCurrency(goal.target_amount)}
+                          </span>
+                        </div>
+                        <div className={styles.catAmountBlock}>
+                          <AnimatedNumber value={proj.percentage} isCurrency={false} suffix="%" className={styles.catVal} />
+                          <span className={cn(styles.badge, proj.overdue ? styles.badgeRed : styles.badgeGreen)}>
+                            {proj.achieved ? 'Tercapai' : proj.overdue ? 'Terlambat' : 'Berjalan'}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              </div>
-
-              <div className={styles.pocketLegendList}>
-                {PIE_DATA.map((item) => (
-                  <div key={item.name} className={styles.legendRow}>
-                    <div className={styles.legendLeft}>
-                      <span className={styles.dot} style={{ background: item.color }} />
-                      <span className={styles.legendName}>{item.name}</span>
-                    </div>
-                    <span className={styles.legendPct}>{item.value}%</span>
-                  </div>
-                ))}
-              </div>
+              )}
             </Card>
-          </div>
+          )}
         </>
       )}
 
-      {/* ============================================================ */}
-      {/* TAB 2: PEMASUKAN (INCOME) */}
-      {/* ============================================================ */}
-      {activeTab === 'income' && (
-        <>
-          <div className={styles.kpiGrid}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Total Pemasukan</span>
-                <div className={styles.kpiIconIncome}><TrendingUp size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`inc-tab-${activeTab}`} value={totalIncome} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>+15.4%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Akumulasi bulan ini</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Pemasukan Utama</span>
-                <div className={styles.kpiIconIncome}><Briefcase size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`main-inc-${activeTab}`} value={18000000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>72%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Gaji & Bonus Tetap</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Pemasukan Sampingan</span>
-                <div className={styles.kpiIconSavings}><DollarSign size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`side-inc-${activeTab}`} value={7000000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>28%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Freelance & Dividen</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Rata-Rata Harian</span>
-                <div className={styles.kpiIconHealth}><Calendar size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`avg-inc-${activeTab}`} value={833000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>/ hari</span>
-              </div>
-              <span className={styles.kpiSubtext}>Estimasi pendapatan</span>
-            </div>
-          </div>
-
-          <Card padding="lg">
-            <CardHeader title="Grafik Tren Pemasukan" subtitle="Pertumbuhan aliran pendapatan" icon={<TrendingUp size={18} />} />
-            <div className={styles.chartContainer}>
-              <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
-                <AreaChart data={DAILY_CASHFLOW_DATA} margin={{ top: 15, right: 10, left: isMobile ? -25 : -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="incomeGradPure" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C6E83B" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#C6E83B" stopOpacity={0.01} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-divider)" />
-                  <XAxis dataKey="day" stroke="#A0A0AB" fontSize={isMobile ? 10 : 12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#A0A0AB" fontSize={isMobile ? 10 : 11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000000}M`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="income" name="Pemasukan" stroke="#C6E83B" strokeWidth={3} fillOpacity={1} fill="url(#incomeGradPure)" isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card padding="lg">
-            <CardHeader title="Rincian Sumber Pemasukan" subtitle="Breakdown kategori pendapatan" icon={<Briefcase size={18} />} />
-            <div className={styles.categoryList}>
-              {INCOME_SOURCES.map((source) => {
-                const IconComp = source.icon;
-                return (
-                  <div key={source.name} className={styles.catRow}>
-                    <div className={styles.catIconBox} style={{ background: `${source.color}18` }}>
-                      <IconComp size={18} style={{ color: source.color === '#1C1C1E' ? 'var(--color-text-primary)' : source.color }} />
-                    </div>
-                    <div className={styles.catMeta}>
-                      <span className={styles.catTitle}>{source.name}</span>
-                      <span className={styles.catSub}>{source.tag}</span>
-                    </div>
-                    <div className={styles.catAmountBlock}>
-                      <AnimatedNumber key={`src-${source.name}-${activeTab}`} value={source.amount} className={styles.catVal} />
-                      <span className={cn(styles.badge, styles.badgeGreen)}>{source.pct}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB 3: PENGELUARAN (EXPENSE) */}
-      {/* ============================================================ */}
-      {activeTab === 'expense' && (
-        <>
-          <div className={styles.kpiGrid}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Total Pengeluaran</span>
-                <div className={styles.kpiIconExpense}><TrendingDown size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`exp-tab-${activeTab}`} value={totalExpense} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeRed)}>-15%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Akumulasi bulan ini</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Pengeluaran Wajib</span>
-                <div className={styles.kpiIconExpense}><Receipt size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`need-exp-${activeTab}`} value={8550000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeRed)}>65%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Tagihan & Groceries</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Pengeluaran Opsional</span>
-                <div className={styles.kpiIconSavings}><Layers size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`opt-exp-${activeTab}`} value={4450000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>35%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Kuliner & Gaya Hidup</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Rata-Rata Harian</span>
-                <div className={styles.kpiIconHealth}><Calendar size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`avg-exp-${activeTab}`} value={433000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeRed)}>/ hari</span>
-              </div>
-              <span className={styles.kpiSubtext}>Rata-rata harian</span>
-            </div>
-          </div>
-
-          <Card padding="lg">
-            <CardHeader title="Grafik Tren Pengeluaran Harian" subtitle="Visualisasi pemakaian dana harian" icon={<TrendingDown size={18} />} />
-            <div className={styles.chartContainer}>
-              <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
-                <AreaChart data={DAILY_CASHFLOW_DATA} margin={{ top: 15, right: 10, left: isMobile ? -25 : -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="expenseGradPure" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1C1C1E" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#1C1C1E" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-divider)" />
-                  <XAxis dataKey="day" stroke="#A0A0AB" fontSize={isMobile ? 10 : 12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#A0A0AB" fontSize={isMobile ? 10 : 11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000000}M`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="expense" name="Pengeluaran" stroke="#1C1C1E" strokeWidth={3} fillOpacity={1} fill="url(#expenseGradPure)" isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card padding="lg">
-            <CardHeader title="Kategori Pengeluaran Terbesar" subtitle="Alokasi biaya berdasarkan sektor" icon={<Layers size={18} />} />
-            <div className={styles.categoryList}>
-              {EXPENSE_CATEGORIES.map((cat) => {
-                const IconComp = cat.icon;
-                return (
-                  <div key={cat.name} className={styles.catRow}>
-                    <div className={styles.catIconBox} style={{ background: `${cat.color}18` }}>
-                      <IconComp size={18} style={{ color: cat.color === '#1C1C1E' ? 'var(--color-text-primary)' : cat.color }} />
-                    </div>
-                    <div className={styles.catMeta}>
-                      <span className={styles.catTitle}>{cat.name}</span>
-                      <span className={styles.catSub}>{cat.tag}</span>
-                    </div>
-                    <div className={styles.catAmountBlock}>
-                      <AnimatedNumber key={`exp-cat-${cat.name}-${activeTab}`} value={cat.amount} className={styles.catVal} />
-                      <span className={cn(styles.badge, styles.badgeRed)}>{cat.pct}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB 4: TABUNGAN (SAVINGS) */}
-      {/* ============================================================ */}
-      {activeTab === 'savings' && (
-        <>
-          <div className={styles.kpiGrid}>
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Total Surplus Tabungan</span>
-                <div className={styles.kpiIconIncome}><PiggyBank size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`sav-tab-${activeTab}`} value={netSavings} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>+18%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Surplus bulan ini</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Rasio Hemat</span>
-                <div className={styles.kpiIconHealth}><ShieldCheck size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`sav-rate-${activeTab}`} value={48} isCurrency={false} suffix="%" className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>Aman</span>
-              </div>
-              <span className={styles.kpiSubtext}>Target min. 30%</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Akumulasi Dana Darurat</span>
-                <div className={styles.kpiIconSavings}><Wallet size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`emerg-${activeTab}`} value={45000000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>75%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Target Rp 60JT (6x Gaji)</span>
-            </div>
-
-            <div className={styles.kpiCard}>
-              <div className={styles.kpiTopRow}>
-                <span className={styles.kpiLabel}>Total Portofolio Aset</span>
-                <div className={styles.kpiIconIncome}><Target size={16} /></div>
-              </div>
-              <div className={styles.kpiValueRow}>
-                <AnimatedNumber key={`asset-${activeTab}`} value={105000000} className={styles.kpiVal} />
-                <span className={cn(styles.badge, styles.badgeGreen)}>+24%</span>
-              </div>
-              <span className={styles.kpiSubtext}>Tabungan + Investasi</span>
-            </div>
-          </div>
-
-          <Card padding="lg">
-            <CardHeader title="Pertumbuhan Tabungan Bulanan" subtitle="Grafik perkembangan surplus tabungan" icon={<PiggyBank size={18} />} />
-            <div className={styles.chartContainer}>
-              <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
-                <AreaChart data={DAILY_CASHFLOW_DATA} margin={{ top: 15, right: 10, left: isMobile ? -25 : -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="savingsGradPure" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C6E83B" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#C6E83B" stopOpacity={0.01} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-divider)" />
-                  <XAxis dataKey="day" stroke="#A0A0AB" fontSize={isMobile ? 10 : 12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#A0A0AB" fontSize={isMobile ? 10 : 11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000000}M`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="savings" name="Tabungan" stroke="#C6E83B" strokeWidth={3} fillOpacity={1} fill="url(#savingsGradPure)" isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card padding="lg">
-            <CardHeader title="Alokasi Pos Tabungan & Aset" subtitle="Progres pemenuhan target tabungan" icon={<Target size={18} />} />
-            <div className={styles.categoryList}>
-              {SAVINGS_ALLOCATIONS.map((item) => {
-                const IconComp = item.icon;
-                return (
-                  <div key={item.name} className={styles.catRow}>
-                    <div className={styles.catIconBox} style={{ background: `${item.color}18` }}>
-                      <IconComp size={18} style={{ color: item.color === '#1C1C1E' ? 'var(--color-text-primary)' : item.color }} />
-                    </div>
-                    <div className={styles.catMeta}>
-                      <span className={styles.catTitle}>{item.name}</span>
-                      <span className={styles.catSub}>Terkumpul {formatCurrency(item.amount)} dari {formatCurrency(item.target)}</span>
-                    </div>
-                    <div className={styles.catAmountBlock}>
-                      <span className={styles.catVal}>{item.pct}%</span>
-                      <span className={cn(styles.badge, styles.badgeGreen)}>On Track</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB 5: ANGGARAN (BUDGET) */}
-      {/* ============================================================ */}
-      {activeTab === 'budget' && (
-        <Card padding="lg">
-          <CardHeader title="Status Anggaran Bulanan (Budget)" subtitle="Batas pengeluaran per kategori bulan ini" icon={<Wallet size={18} />} />
-          <div className={styles.budgetGrid}>
-            {DEMO_BUDGETS.map((item) => {
-              const pct = Math.round((item.spent / item.limit) * 100);
-              const isOver = pct > 100;
-              const isWarning = pct >= 80 && pct <= 100;
-              const IconComp = item.icon;
-              const barColor = isOver ? 'var(--color-danger)' : isWarning ? 'var(--color-warning)' : 'var(--color-primary)';
-
-              return (
-                <div key={item.id} className={styles.budgetCard}>
-                  <div className={styles.budgetTop}>
-                    <div className={styles.budgetTitleGroup}>
-                      <div className={styles.budgetIconCircle}>
-                        <IconComp size={16} />
-                      </div>
-                      <span className={styles.budgetName} title={item.category}>{item.category}</span>
-                    </div>
-                    <span className={cn(styles.statusPill, isOver ? styles.statusOver : isWarning ? styles.statusWarning : styles.statusSafe)}>
-                      {isOver ? 'Kelebihan' : isWarning ? 'Waspada' : 'Aman'}
-                    </span>
-                  </div>
-
-                  <div className={styles.budgetAmounts}>
-                    <AnimatedNumber key={`bdg-${item.id}-${activeTab}`} value={item.spent} className={styles.spentVal} />
-                    <span className={styles.limitVal}>dari {formatCurrency(item.limit)}</span>
-                  </div>
-
-                  <div className={styles.budgetTrack}>
-                    <div className={styles.budgetFill} style={{ width: `${Math.min(pct, 100)}%`, background: barColor }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB 6: TARGET FINANSIAL (GOALS) */}
-      {/* ============================================================ */}
-      {activeTab === 'goals' && (
-        <Card padding="lg">
-          <CardHeader title="Target Tabungan & Finansial (Goals)" subtitle="Progres pencapaian impian Anda" icon={<Target size={18} />} />
-          <div className={styles.categoryList}>
-            {DEMO_GOALS.map((goal) => {
-              const IconComp = goal.icon;
-              const pct = Math.round((goal.current / goal.target) * 100);
-              return (
-                <div key={goal.id} className={styles.catRow}>
-                  <div className={styles.catIconBox} style={{ background: 'var(--color-primary-subtle)' }}>
-                    <IconComp size={18} style={{ color: 'var(--color-dark)' }} />
-                  </div>
-                  <div className={styles.catMeta}>
-                    <span className={styles.catTitle}>{goal.name}</span>
-                    <span className={styles.catSub}>Target s/d {goal.date} ({formatCurrency(goal.current)} / {formatCurrency(goal.target)})</span>
-                  </div>
-                  <div className={styles.catAmountBlock}>
-                    <AnimatedNumber key={`goal-${goal.id}-${activeTab}`} value={pct} isCurrency={false} suffix="%" className={styles.catVal} />
-                    <span className={cn(styles.badge, styles.badgeGreen)}>{pct >= 100 ? 'Tercapai' : 'Berjalan'}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
+      {/* Export Modal */}
+      <Modal isOpen={showExport} onClose={() => !exporting && setShowExport(false)} size="sm" title="Ekspor Laporan">
+        <div className={styles.exportBody}>
+          <p className={styles.exportDesc}>
+            {periodLabel} · {report.inRange.length} transaksi ({formatDate(range.start, 'dd MMM yyyy')} – {formatDate(range.end, 'dd MMM yyyy')})
+          </p>
+          {(
+            [
+              ['pdf', 'PDF (Siap Cetak)', 'Ringkasan, rincian kategori & daftar transaksi', FileText],
+              ['xlsx', 'Excel (.xlsx)', 'Sheet ringkasan & sheet transaksi untuk diolah', FileSpreadsheet],
+              ['csv', 'CSV', 'Format universal untuk impor ke aplikasi lain', Sheet],
+            ] as [ExportFormat, string, string, React.ElementType][]
+          ).map(([fmt, title, desc, Icon]) => (
+            <button key={fmt} className={styles.exportOption} onClick={() => void handleExport(fmt)} disabled={Boolean(exporting)}>
+              <span className={styles.exportIcon}>
+                <Icon size={20} />
+              </span>
+              <span className={styles.exportText}>
+                <span className={styles.exportTitle}>{exporting === fmt ? 'Menyiapkan file...' : title}</span>
+                <span className={styles.exportSub}>{desc}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 };
 
 // ---- Custom Tooltip ----
-const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
+interface TooltipEntry {
+  color?: string;
+  name?: string;
+  value?: number;
+}
+
+const CustomTooltip: React.FC<{ active?: boolean; payload?: TooltipEntry[]; label?: string }> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className={styles.customTooltip}>
         <p className={styles.tooltipTitle}>{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <div key={index} className={styles.tooltipRow}>
             <span className={styles.tooltipDot} style={{ background: entry.color }} />
             <span className={styles.tooltipName}>{entry.name}:</span>
-            <span className={styles.tooltipVal}>{formatCurrency(entry.value)}</span>
+            <span className={styles.tooltipVal}>{formatCurrency(Number(entry.value) || 0)}</span>
           </div>
         ))}
       </div>
