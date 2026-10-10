@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Button Component
+// Fundly.id - Button Component
 // ============================================
 
 import React from 'react';

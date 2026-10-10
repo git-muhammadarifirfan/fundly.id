@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Accounts Page (Akun & Dompet)
+// Fundly.id - Accounts Page (Akun & Dompet)
 // ============================================
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';

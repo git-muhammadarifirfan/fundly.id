@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Card Component
+// Fundly.id - Card Component
 // ============================================
 
 import React from 'react';

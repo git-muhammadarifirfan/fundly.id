@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Notification Bell (budget, tagihan rutin, target)
+// Fundly.id - Notification Bell (budget, tagihan rutin, target)
 // Notifikasi dihitung real-time dari data keuangan pengguna.
 // ============================================
 

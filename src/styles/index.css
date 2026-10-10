@@ -1,5 +1,5 @@
 /* ============================================
-   Fundly.id — Global Design System
+   Fundly.id - Global Design System
    Color Palette: Lime Green + Dark + White
    ============================================ */
 
@@ -162,7 +162,11 @@
   padding: 0;
 }
 
-html, body, *, *::before, *::after {
+html,
+body,
+*,
+*::before,
+*::after {
   scroll-behavior: smooth !important;
 }
 
@@ -186,12 +190,19 @@ body {
   overflow-x: hidden;
 }
 
-img, picture, video, canvas, svg {
+img,
+picture,
+video,
+canvas,
+svg {
   display: block;
   max-width: 100%;
 }
 
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
   font: inherit;
   color: inherit;
 }
@@ -207,11 +218,17 @@ a {
   text-decoration: none;
 }
 
-ul, ol {
+ul,
+ol {
   list-style: none;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: var(--font-semibold);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
@@ -231,29 +248,85 @@ table {
    ============================================ */
 
 /* ---- Typography ---- */
-.text-xs { font-size: var(--text-xs); }
-.text-sm { font-size: var(--text-sm); }
-.text-base { font-size: var(--text-base); }
-.text-lg { font-size: var(--text-lg); }
-.text-xl { font-size: var(--text-xl); }
-.text-2xl { font-size: var(--text-2xl); }
-.text-3xl { font-size: var(--text-3xl); }
-.text-4xl { font-size: var(--text-4xl); }
+.text-xs {
+  font-size: var(--text-xs);
+}
 
-.font-light { font-weight: var(--font-light); }
-.font-medium { font-weight: var(--font-medium); }
-.font-semibold { font-weight: var(--font-semibold); }
-.font-bold { font-weight: var(--font-bold); }
+.text-sm {
+  font-size: var(--text-sm);
+}
 
-.text-primary { color: var(--color-text-primary); }
-.text-secondary { color: var(--color-text-secondary); }
-.text-tertiary { color: var(--color-text-tertiary); }
-.text-success { color: var(--color-success); }
-.text-danger { color: var(--color-danger); }
-.text-warning { color: var(--color-warning); }
+.text-base {
+  font-size: var(--text-base);
+}
 
-.text-center { text-align: center; }
-.text-right { text-align: right; }
+.text-lg {
+  font-size: var(--text-lg);
+}
+
+.text-xl {
+  font-size: var(--text-xl);
+}
+
+.text-2xl {
+  font-size: var(--text-2xl);
+}
+
+.text-3xl {
+  font-size: var(--text-3xl);
+}
+
+.text-4xl {
+  font-size: var(--text-4xl);
+}
+
+.font-light {
+  font-weight: var(--font-light);
+}
+
+.font-medium {
+  font-weight: var(--font-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-bold);
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
 
 .truncate {
   overflow: hidden;
@@ -263,8 +336,10 @@ table {
 
 /* ---- Scrollbar Styling (Hidden native scrollbar, replaced with top progress line) ---- */
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
 }
 
 ::-webkit-scrollbar {
@@ -320,17 +395,20 @@ table {
    Skeleton Loading Animation
    ============================================ */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-bg-input) 25%,
-    var(--color-bg-elevated) 50%,
-    var(--color-bg-input) 75%
-  );
+  background: linear-gradient(90deg,
+      var(--color-bg-input) 25%,
+      var(--color-bg-elevated) 50%,
+      var(--color-bg-input) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: var(--radius-sm);

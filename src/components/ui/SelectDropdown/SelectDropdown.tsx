@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Reusable Custom SelectDropdown Component
+// Fundly.id - Reusable Custom SelectDropdown Component
 // Modern Template-Consistent Dropdown with Smooth Animation
 // ============================================
 

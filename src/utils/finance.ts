@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Financial Aggregation Helpers (pure functions)
+// Fundly.id - Financial Aggregation Helpers (pure functions)
 // ============================================
 
 import {

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Icon Registry (nama ikon di database → komponen Lucide)
+// Fundly.id - Icon Registry (nama ikon di database → komponen Lucide)
 // ============================================
 
 import React from 'react';

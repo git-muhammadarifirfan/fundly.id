@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Flat Mobile Navigation with Bubble Indicator
+// Fundly.id - Flat Mobile Navigation with Bubble Indicator
 // ============================================
 
 import React from 'react';

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Modal Component
+// Fundly.id - Modal Component
 // ============================================
 
 import React, { useEffect, useCallback } from 'react';

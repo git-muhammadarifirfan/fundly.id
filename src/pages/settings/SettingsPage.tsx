@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Settings Page (Profil, Keamanan, Kategori, Transaksi Rutin, Data)
+// Fundly.id - Settings Page (Profil, Keamanan, Kategori, Transaksi Rutin, Data)
 // ============================================
 
 import React, { useMemo, useRef, useState } from 'react';
@@ -1055,7 +1055,7 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
         <p className={styles.passwordDescText}>
           Status:{' '}
           <strong>
-            {realtimeStatus === 'live' ? 'Terhubung — perubahan dari perangkat lain tampil otomatis' : realtimeStatus === 'offline' ? 'Terputus — mencoba menghubungkan ulang' : 'Menghubungkan...'}
+            {realtimeStatus === 'live' ? 'Terhubung - perubahan dari perangkat lain tampil otomatis' : realtimeStatus === 'offline' ? 'Terputus - mencoba menghubungkan ulang' : 'Menghubungkan...'}
           </strong>
           {lastSyncedAt && <> · Sinkron terakhir {new Date(lastSyncedAt).toLocaleTimeString('id-ID')}</>}
         </p>

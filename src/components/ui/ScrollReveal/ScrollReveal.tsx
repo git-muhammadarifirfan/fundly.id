@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — GSAP ScrollTrigger Reveal Component
+// Fundly.id - GSAP ScrollTrigger Reveal Component
 // ============================================
 
 import React, { useEffect, useRef, useMemo, type ReactNode, type RefObject } from 'react';

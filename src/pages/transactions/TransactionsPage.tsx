@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Transactions Page (riwayat, pencarian, filter, detail)
+// Fundly.id - Transactions Page (riwayat, pencarian, filter, detail)
 // ============================================
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';

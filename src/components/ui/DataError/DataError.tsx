@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Data Load Error State
+// Fundly.id - Data Load Error State
 // ============================================
 
 import React from 'react';

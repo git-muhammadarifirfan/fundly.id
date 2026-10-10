@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Header Component
+// Fundly.id - Header Component
 // ============================================
 
 import React from 'react';

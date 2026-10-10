@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Add / Edit Transaction Page
+// Fundly.id - Add / Edit Transaction Page
 // Pengeluaran, Pemasukan, Transfer antar akun + transaksi berulang
 // ============================================
 

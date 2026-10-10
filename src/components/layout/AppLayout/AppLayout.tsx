@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — App Layout Component
+// Fundly.id - App Layout Component
 // ============================================
 
 import React from 'react';
@@ -24,7 +24,7 @@ export const AppLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className={styles.mainWrapper}>
         <Header />
-        
+
         <main className={styles.content}>
           <div className={styles.contentInner}>
             <Outlet />

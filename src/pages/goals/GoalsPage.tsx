@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Goals Page (Target Tabungan)
+// Fundly.id - Goals Page (Target Tabungan)
 // ============================================
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -338,7 +338,7 @@ export const GoalsPage: React.FC = () => {
                   {!proj.achieved && proj.monthlyNeeded !== null && (
                     <span className={styles.projectionText}>
                       {proj.overdue
-                        ? 'Tenggat terlewati — perbarui tenggat atau tambah dana.'
+                        ? 'Tenggat terlewati - perbarui tenggat atau tambah dana.'
                         : `Sisihkan ±${formatCurrency(proj.monthlyNeeded)}/bulan agar tercapai tepat waktu.`}
                     </span>
                   )}

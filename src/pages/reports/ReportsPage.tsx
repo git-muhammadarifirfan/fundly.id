@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Reports Page (data real-time dari Supabase)
+// Fundly.id - Reports Page (data real-time dari Supabase)
 // ============================================
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';

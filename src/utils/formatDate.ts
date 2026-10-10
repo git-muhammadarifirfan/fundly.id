@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Date Formatting Utilities
+// Fundly.id - Date Formatting Utilities
 // Semua tanggal transaksi memakai tanggal LOKAL perangkat (bukan UTC).
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Finance Data Hooks (memoized selectors)
+// Fundly.id - Finance Data Hooks (memoized selectors)
 // ============================================
 
 import { useMemo } from 'react';

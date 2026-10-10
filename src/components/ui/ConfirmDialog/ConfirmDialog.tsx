@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Reusable Confirmation Dialog
+// Fundly.id - Reusable Confirmation Dialog
 // ============================================
 
 import React from 'react';

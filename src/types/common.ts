@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Common Shared Types
+// Fundly.id - Common Shared Types
 // ============================================
 
 // Transaction types

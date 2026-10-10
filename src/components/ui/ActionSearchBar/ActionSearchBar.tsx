@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — ActionSearchBar Component (Cmd+K Interactive Search & Quick Actions)
+// Fundly.id - ActionSearchBar Component (Cmd+K Interactive Search & Quick Actions)
 // ============================================
 
 import React, { useEffect, useRef } from 'react';

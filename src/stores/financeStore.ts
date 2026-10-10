@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Finance Data Store (Zustand + Supabase Realtime)
+// Fundly.id - Finance Data Store (Zustand + Supabase Realtime)
 // Satu sumber data untuk seluruh halaman. Perubahan dari perangkat/tab lain
 // masuk lewat Supabase Realtime dan langsung memperbarui UI.
 // ============================================

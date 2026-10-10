@@ -1,5 +1,5 @@
 /* ============================================
-   App Layout Styles — Clean Responsive No-Overflow
+   App Layout Styles - Clean Responsive No-Overflow
    ============================================ */
 
 .appContainer {
@@ -15,7 +15,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  min-width: 0; /* Prevents flex children from overflowing horizontally */
+  min-width: 0;
+  /* Prevents flex children from overflowing horizontally */
 }
 
 /* Desktop offset for Sidebar */

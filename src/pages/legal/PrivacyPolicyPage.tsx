@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Kebijakan Privasi
+// Fundly.id - Kebijakan Privasi
 // ============================================
 
 import React from 'react';
@@ -83,13 +83,13 @@ const sections: LegalSection[] = [
         </p>
         <ul>
           <li>
-            <strong>Supabase</strong> — basis data, autentikasi, penyimpanan file (foto profil), dan sinkronisasi realtime.
+            <strong>Supabase</strong> - basis data, autentikasi, penyimpanan file (foto profil), dan sinkronisasi realtime.
           </li>
           <li>
-            <strong>Penyedia layanan email</strong> — untuk mengirim email konfirmasi dan reset kata sandi.
+            <strong>Penyedia layanan email</strong> - untuk mengirim email konfirmasi dan reset kata sandi.
           </li>
           <li>
-            <strong>Google</strong> — hanya jika Anda memilih masuk dengan Google.
+            <strong>Google</strong> - hanya jika Anda memilih masuk dengan Google.
           </li>
         </ul>
         <p>Kami dapat mengungkapkan data jika diwajibkan oleh hukum atau perintah otoritas yang berwenang di Indonesia.</p>

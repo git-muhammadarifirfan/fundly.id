@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Auth page helpers
+// Fundly.id - Auth page helpers
 // ============================================
 
 import type { OAuthProvider } from '../../stores/authStore';

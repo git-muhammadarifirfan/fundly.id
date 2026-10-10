@@ -1,5 +1,5 @@
 -- ============================================================================
--- Fundly.id — Production Database Schema (Supabase / PostgreSQL)
+-- Fundly.id - Production Database Schema (Supabase / PostgreSQL)
 -- ----------------------------------------------------------------------------
 -- Jalankan SELURUH file ini di Supabase Dashboard -> SQL Editor -> Run.
 -- Script ini IDEMPOTENT: aman dijalankan berulang kali, dan aman dijalankan

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Top Scroll Progress Bar Component
+// Fundly.id - Top Scroll Progress Bar Component
 // Lime Green Theme Progress Indicator for Page Scroll
 // ============================================
 
@@ -31,9 +31,9 @@ export const ScrollProgressBar: React.FC = () => {
 
   return (
     <div className={styles.scrollProgressTrack}>
-      <div 
-        className={styles.scrollProgressBar} 
-        style={{ width: `${scrollProgress}%` }} 
+      <div
+        className={styles.scrollProgressBar}
+        style={{ width: `${scrollProgress}%` }}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — User Profile & Logout Dropdown Menu
+// Fundly.id - User Profile & Logout Dropdown Menu
 // ============================================
 
 import React, { useState, useRef, useEffect } from 'react';

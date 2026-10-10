@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Export Laporan (PDF / Excel / CSV)
+// Fundly.id - Export Laporan (PDF / Excel / CSV)
 // Library berat dimuat secara dinamis hanya saat ekspor.
 // ============================================
 
@@ -139,7 +139,7 @@ async function exportPdf(payload: ExportPayload) {
   doc.setTextColor(...dark);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
-  doc.text('Laporan Keuangan — Fundly.id', 40, 36);
+  doc.text('Laporan Keuangan - Fundly.id', 40, 36);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text(

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — NumPad Component (Mobile)
+// Fundly.id - NumPad Component (Mobile)
 // ============================================
 
 import React, { useCallback } from 'react';

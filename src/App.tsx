@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Root Application Component
+// Fundly.id - Root Application Component
 // ============================================
 
 import React, { lazy, Suspense, useEffect } from 'react';

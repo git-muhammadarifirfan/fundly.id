@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Financial Calculations
+// Fundly.id - Financial Calculations
 // ============================================
 
 import type { BudgetStatus } from '../types/common';
@@ -11,7 +11,7 @@ import { BUDGET_THRESHOLDS } from '../config/constants';
 export function getBudgetStatus(spent: number, limit: number): BudgetStatus {
   if (limit <= 0) return 'safe';
   const ratio = spent / limit;
-  
+
   if (ratio > BUDGET_THRESHOLDS.DANGER) return 'exceeded';
   if (ratio > BUDGET_THRESHOLDS.WARNING) return 'danger';
   if (ratio > BUDGET_THRESHOLDS.SAFE) return 'warning';
@@ -36,13 +36,13 @@ export function calculateGoalProjection(
   monthlyRate: number,
 ): Date | null {
   if (monthlyRate <= 0 || currentAmount >= targetAmount) return null;
-  
+
   const remaining = targetAmount - currentAmount;
   const monthsNeeded = Math.ceil(remaining / monthlyRate);
-  
+
   const projectedDate = new Date();
   projectedDate.setMonth(projectedDate.getMonth() + monthsNeeded);
-  
+
   return projectedDate;
 }
 

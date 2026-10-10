@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Centered Page Loader Component
+// Fundly.id - Centered Page Loader Component
 // ============================================
 
 import React from 'react';

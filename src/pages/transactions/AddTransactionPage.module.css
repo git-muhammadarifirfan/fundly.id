@@ -1,5 +1,5 @@
 /* ============================================
-   Add Transaction Page — 100% Exact Screenshot Match
+   Add Transaction Page - 100% Exact Screenshot Match
    ============================================ */
 
 .page {
@@ -136,7 +136,8 @@
   flex-shrink: 0;
 }
 
-.realtimeItemLeft, .realtimeItemRight {
+.realtimeItemLeft,
+.realtimeItemRight {
   display: flex;
   flex-direction: column;
 }
@@ -323,12 +324,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE & Edge */
 }
 
 .dropdownMenu::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 .dropdownOption {

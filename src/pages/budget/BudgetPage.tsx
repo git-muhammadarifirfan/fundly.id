@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Budget & Target Page (Full CRUD terhubung Supabase)
+// Fundly.id - Budget & Target Page (Full CRUD terhubung Supabase)
 // ============================================
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';

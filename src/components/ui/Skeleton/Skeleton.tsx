@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Inline Skeleton Loader Component
+// Fundly.id - Inline Skeleton Loader Component
 // ============================================
 
 import React from 'react';

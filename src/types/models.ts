@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Domain Models (mirror tabel Supabase)
+// Fundly.id - Domain Models (mirror tabel Supabase)
 // Semua nominal dalam Rupiah utuh.
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — useAnimations Hook (GSAP)
+// Fundly.id - useAnimations Hook (GSAP)
 // ============================================
 
 import { useEffect, useRef } from 'react';

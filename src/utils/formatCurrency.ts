@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Currency Formatting Utilities
+// Fundly.id - Currency Formatting Utilities
 // Semua nominal di aplikasi disimpan & diproses dalam Rupiah utuh.
 // ============================================
 

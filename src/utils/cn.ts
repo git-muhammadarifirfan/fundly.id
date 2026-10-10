@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — className Merge Utility
+// Fundly.id - className Merge Utility
 // ============================================
 
 /**

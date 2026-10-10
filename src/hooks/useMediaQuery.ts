@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — useMediaQuery Hook
+// Fundly.id - useMediaQuery Hook
 // ============================================
 
 import { useState, useEffect } from 'react';

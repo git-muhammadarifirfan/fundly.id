@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Application Entry Point
+// Fundly.id - Application Entry Point
 // ============================================
 
 import React from 'react';

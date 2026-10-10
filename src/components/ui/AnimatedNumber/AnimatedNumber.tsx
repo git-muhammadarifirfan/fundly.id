@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — GSAP Smooth Animated Number Component
+// Fundly.id - GSAP Smooth Animated Number Component
 // Active Smooth Count-Up Animation Across All Layouts
 // ============================================
 

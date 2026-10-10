@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Syarat & Ketentuan Layanan
+// Fundly.id - Syarat & Ketentuan Layanan
 // ============================================
 
 import React from 'react';

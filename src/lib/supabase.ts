@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Supabase Client Configuration
+// Fundly.id - Supabase Client Configuration
 // ============================================
 
 import { createClient, type SupportedStorage } from '@supabase/supabase-js';
@@ -16,10 +16,10 @@ const supabaseAnonKey = (
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
-    supabaseAnonKey &&
-    !supabaseUrl.includes('your-project') &&
-    !supabaseUrl.includes('placeholder') &&
-    !supabaseAnonKey.includes('your_supabase'),
+  supabaseAnonKey &&
+  !supabaseUrl.includes('your-project') &&
+  !supabaseUrl.includes('placeholder') &&
+  !supabaseAnonKey.includes('your_supabase'),
 );
 
 /**
@@ -38,7 +38,7 @@ export function setRememberSession(remember: boolean) {
   try {
     localStorage.setItem(REMEMBER_KEY, remember ? '1' : '0');
   } catch {
-    // storage tidak tersedia (mode privat) — abaikan
+    // storage tidak tersedia (mode privat) - abaikan
   }
 }
 

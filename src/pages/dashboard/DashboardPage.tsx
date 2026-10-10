@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Dashboard Page
+// Fundly.id - Dashboard Page
 // ============================================
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';

@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Application Constants
+// Fundly.id - Application Constants
 // ============================================
 
 export const APP_NAME = 'Fundly';

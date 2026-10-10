@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — UI State Store (Zustand)
+// Fundly.id - UI State Store (Zustand)
 // ============================================
 
 import { create } from 'zustand';

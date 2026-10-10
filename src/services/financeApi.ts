@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Supabase Data API
+// Fundly.id - Supabase Data API
 // Semua fungsi melempar Error (pesan ramah) jika gagal.
 // ============================================
 

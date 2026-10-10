@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Auth State Store (Zustand + Supabase Auth)
+// Fundly.id - Auth State Store (Zustand + Supabase Auth)
 // ============================================
 
 import { create } from 'zustand';

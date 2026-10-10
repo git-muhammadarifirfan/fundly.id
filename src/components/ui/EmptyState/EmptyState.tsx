@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Clean Empty State Component
+// Fundly.id - Clean Empty State Component
 // ============================================
 
 import React from 'react';

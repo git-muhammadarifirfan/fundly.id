@@ -1,5 +1,5 @@
 // ============================================
-// Fundly.id — Route Path Definitions
+// Fundly.id - Route Path Definitions
 // ============================================
 
 export const ROUTES = {
