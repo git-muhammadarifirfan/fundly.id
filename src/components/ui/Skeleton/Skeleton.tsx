@@ -31,13 +31,6 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         ...style,
       }}
     >
-      <style>{`
-        @keyframes fundlySkeletonPulse {
-          0% { opacity: 0.45; }
-          50% { opacity: 0.85; }
-          100% { opacity: 0.45; }
-        }
-      `}</style>
     </div>
   );
 };

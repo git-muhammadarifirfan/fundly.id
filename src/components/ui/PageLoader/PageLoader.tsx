@@ -31,7 +31,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ message = 'Memuat data F
           border: '3.5px solid rgba(198, 232, 59, 0.2)',
           borderTopColor: '#C6E83B',
           borderRadius: '50%',
-          animation: 'spin 0.65s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+          animation: 'fundlySpin 0.65s cubic-bezier(0.4, 0, 0.2, 1) infinite',
           boxShadow: '0 0 16px rgba(198, 232, 59, 0.3)',
         }}
       />
@@ -45,7 +45,6 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ message = 'Memuat data F
       >
         {message}
       </span>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };
