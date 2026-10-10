@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konfirmasi Perubahan Email - Fundly.id</title>
+  <style>
+    /* Reset & Base Styles */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #F8FAF5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    
+    /* Responsive Breakpoints */
+    @media screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 16px !important; }
+      .content-box { padding: 24px 20px !important; }
+      .btn-primary { width: 100% !important; display: block !important; text-align: center !important; }
+    }
+  </style>
+</head>
+<body style="background-color: #F8FAF5; margin: 0; padding: 40px 0;">
+
+  <!-- Outer Container -->
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td align="center" style="background-color: #F8FAF5;">
+        
+        <!-- Main Card Container -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="max-width: 540px; background-color: #FFFFFF; border-radius: 20px; border: 1px solid #EAEAEA; box-shadow: 0 8px 24px rgba(0,0,0,0.03); overflow: hidden;">
+          
+          <!-- Header Brand -->
+          <tr>
+            <td align="center" style="padding: 32px 32px 20px 32px; background-color: #FFFFFF; border-bottom: 1px solid #F4F4F6;">
+              <table border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="width: 40px; height: 40px; background-color: #C6E83B; border-radius: 50%; font-weight: 800; font-size: 20px; color: #1C1C1E; line-height: 40px;">
+                    F
+                  </td>
+                  <td style="padding-left: 12px; font-size: 22px; font-weight: 800; color: #1C1C1E; letter-spacing: -0.02em;">
+                    Fundly.id
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Email Content -->
+          <tr>
+            <td class="content-box" style="padding: 36px 36px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                
+                <!-- Email Title -->
+                <tr>
+                  <td style="font-size: 22px; font-weight: 700; color: #1C1C1E; letter-spacing: -0.02em; padding-bottom: 12px;">
+                    Konfirmasi Perubahan Email ✉️
+                  </td>
+                </tr>
+
+                <!-- Greeting & Body -->
+                <tr>
+                  <td style="font-size: 14px; color: #555558; line-height: 1.6; padding-bottom: 24px;">
+                    Halo,<br><br>
+                    Kami menerima permintaan untuk mengubah alamat email akun Fundly.id Anda menjadi <strong>{{ .Email }}</strong>. Silakan klik tombol di bawah ini untuk mengonfirmasi perubahan ini.
+                  </td>
+                </tr>
+
+                <!-- CTA Button -->
+                <tr>
+                  <td align="center" style="padding-bottom: 28px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td align="center" style="border-radius: 14px; background-color: #C6E83B;">
+                          <a href="{{ .ConfirmationURL }}" target="_blank" class="btn-primary" style="font-size: 14px; font-weight: 700; color: #1C1C1E; text-decoration: none; padding: 14px 28px; border-radius: 14px; display: inline-block; border: 1px solid #B8DC2E;">
+                            Konfirmasi Alamat Email Baru →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Security Warning Box -->
+                <tr>
+                  <td style="background-color: #F8FAF5; border-radius: 12px; padding: 16px; border: 1px solid #EAEAEA; font-size: 12px; color: #666668; line-height: 1.5;">
+                    ⚠️ <strong>Keamanan:</strong> Jika Anda tidak melakukan permintaan perubahan alamat email ini, harap segera amankan akun Anda atau hubungi dukungan Fundly.id.
+                  </td>
+                </tr>
+
+                <!-- Fallback URL -->
+                <tr>
+                  <td style="font-size: 11px; color: #88888C; line-height: 1.5; padding-top: 24px; word-break: break-all;">
+                    Jika tombol di atas tidak bisa diklik, salin dan tempel tautan berikut ke peramban web Anda:<br>
+                    <a href="{{ .ConfirmationURL }}" style="color: #1C1C1E; text-decoration: underline;">{{ .ConfirmationURL }}</a>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color: #F4F4F6; padding: 20px 32px; border-top: 1px solid #EAEAEA; font-size: 11px; color: #88888C; line-height: 1.5;">
+              © 2026 Fundly.id Corporation • Platform Manajemen Keuangan Terpercaya<br>
+              Email ini dikirim secara otomatis oleh sistem Supabase Auth. Harap tidak membalas email ini.
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
