@@ -40,12 +40,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary, #C6E83B);
   border-radius: var(--radius-md);
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(198, 232, 59, 0.3);
+}
+
+.logoSymbol {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--color-dark, #1C1C1E);
+  line-height: 1;
 }
 
 .logoText {
@@ -117,4 +124,62 @@
 .bottomNav {
   padding: var(--space-3);
   border-top: 1px solid var(--color-divider);
+}
+
+.syncPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-dark, #1C1C1E);
+  background: var(--color-primary, #C6E83B);
+  padding: 3px 8px;
+  border-radius: 12px;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(198, 232, 59, 0.4);
+}
+
+.spinIcon {
+  animation: spinSync 0.8s linear infinite;
+}
+
+@keyframes spinSync {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Realtime Sync Status ---- */
+.syncStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+}
+
+.syncDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-quaternary);
+  flex-shrink: 0;
+}
+
+.syncDotLive {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.18);
+}
+
+.syncDotOffline {
+  background: var(--color-warning);
+}
+
+.syncText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

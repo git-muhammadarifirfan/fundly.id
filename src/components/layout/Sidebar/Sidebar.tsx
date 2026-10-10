@@ -1,35 +1,55 @@
-// ============================================
-// Fundly.id — Sidebar Component (Desktop)
-// ============================================
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import * as Icons from 'lucide-react';
+import {
+  ArrowLeftRight,
+  BarChart3,
+  Landmark,
+  LayoutDashboard,
+  RefreshCw,
+  Settings,
+  Target,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react';
 import { NAV_ITEMS, SECONDARY_NAV_ITEMS } from '../../../config/routes';
 import { APP_NAME } from '../../../config/constants';
+import { useFinanceStore } from '../../../stores/financeStore';
 import { cn } from '../../../utils/cn';
 import styles from './Sidebar.module.css';
 
-// Dynamic icon renderer
-const DynamicIcon: React.FC<{ name: string; size?: number }> = ({ name, size = 20 }) => {
-  const iconName = name
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('') as keyof typeof Icons;
-  const IconComponent = Icons[iconName] as React.FC<{ size?: number }>;
+const NAV_ICONS: Record<string, LucideIcon> = {
+  'layout-dashboard': LayoutDashboard,
+  'arrow-left-right': ArrowLeftRight,
+  wallet: Wallet,
+  'bar-chart-3': BarChart3,
+  target: Target,
+  landmark: Landmark,
+  settings: Settings,
+};
+
+const NavIcon: React.FC<{ name: string; size?: number }> = ({ name, size = 20 }) => {
+  const IconComponent = NAV_ICONS[name];
   return IconComponent ? <IconComponent size={size} /> : null;
 };
 
+const SYNC_LABELS = {
+  idle: 'Menghubungkan...',
+  connecting: 'Menghubungkan...',
+  live: 'Tersinkron realtime',
+  offline: 'Offline — mencoba ulang',
+} as const;
+
 export const Sidebar: React.FC = () => {
   const location = useLocation();
+  const realtimeStatus = useFinanceStore((s) => s.realtimeStatus);
+  const isRefreshing = useFinanceStore((s) => s.isRefreshing);
 
   return (
     <aside className={styles.sidebar}>
       {/* Logo */}
       <div className={styles.logo}>
         <div className={styles.logoIcon}>
-          <Icons.Wallet size={24} />
+          <span className={styles.logoSymbol}>F</span>
         </div>
         <span className={styles.logoText}>{APP_NAME}</span>
       </div>
@@ -50,7 +70,7 @@ export const Sidebar: React.FC = () => {
                   className={cn(styles.navItem, isActive && styles.active)}
                 >
                   <span className={styles.navIconWrap}>
-                    <DynamicIcon name={item.icon} size={20} />
+                    <NavIcon name={item.icon} size={20} />
                   </span>
                   <span className={styles.navLabel}>{item.label}</span>
                 </NavLink>
@@ -72,7 +92,7 @@ export const Sidebar: React.FC = () => {
                   className={cn(styles.navItem, isActive && styles.active)}
                 >
                   <span className={styles.navIconWrap}>
-                    <DynamicIcon name={item.icon} size={20} />
+                    <NavIcon name={item.icon} size={20} />
                   </span>
                   <span className={styles.navLabel}>{item.label}</span>
                 </NavLink>
@@ -80,6 +100,22 @@ export const Sidebar: React.FC = () => {
             );
           })}
         </ul>
+
+        <div className={styles.syncStatus} title="Status sinkronisasi data dengan server">
+          <span
+            className={cn(
+              styles.syncDot,
+              realtimeStatus === 'live' && styles.syncDotLive,
+              realtimeStatus === 'offline' && styles.syncDotOffline,
+            )}
+          />
+          <span className={styles.syncText}>{SYNC_LABELS[realtimeStatus]}</span>
+          {isRefreshing && (
+            <span className={styles.syncPill}>
+              <RefreshCw size={11} className={styles.spinIcon} /> Sinkron
+            </span>
+          )}
+        </div>
       </div>
     </aside>
   );
