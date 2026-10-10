@@ -31,12 +31,10 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
     const node = nodeRef.current;
     if (!node) return;
 
-    // Reset initial value to 0 for smooth count-up entry
-    objRef.current.val = 0;
-
+    // Animasikan dari nilai terakhir agar update realtime terasa halus
     const tween = gsap.fromTo(
       objRef.current,
-      { val: 0 },
+      { val: objRef.current.val },
       {
         val: value,
         duration,

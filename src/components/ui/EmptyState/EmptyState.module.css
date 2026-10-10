@@ -1,0 +1,50 @@
+/* ============================================
+   Empty State Component CSS Module
+   ============================================ */
+
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  background: var(--color-bg-card);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-2xl);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.iconCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-subtle, #F4FAD2);
+  color: var(--color-dark, #1C1C1E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+  box-shadow: 0 4px 14px rgba(198, 232, 59, 0.25);
+}
+
+.emptyTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: -0.01em;
+}
+
+.emptyDesc {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  max-width: 380px;
+  margin: 0 0 var(--space-5) 0;
+  line-height: 1.5;
+}
+
+.actionWrap {
+  margin-top: var(--space-1);
+}

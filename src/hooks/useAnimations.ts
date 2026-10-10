@@ -46,29 +46,39 @@ export function useCountUp(
   targetValue: number,
   duration: number = 1.2,
   delay: number = 0,
+  /** Ubah nilai ini saat elemen target diganti (mis. layout mobile ↔ desktop) */
+  resetKey?: unknown,
 ) {
   const ref = useRef<HTMLElement>(null);
-  const valueRef = useRef({ value: 0 });
+  const lastValueRef = useRef(0);
 
   useEffect(() => {
     if (!ref.current) return;
 
-    gsap.to(valueRef.current, {
+    // Animasikan dari nilai terakhir agar update realtime terasa halus
+    const state = { value: lastValueRef.current };
+    ref.current.textContent = Math.round(state.value).toLocaleString('id-ID');
+
+    const tween = gsap.to(state, {
       value: targetValue,
       duration,
       delay,
       ease: 'power2.out',
       onUpdate: () => {
+        lastValueRef.current = state.value;
         if (ref.current) {
-          ref.current.textContent = Math.round(valueRef.current.value).toLocaleString('id-ID');
+          ref.current.textContent = Math.round(state.value).toLocaleString('id-ID');
         }
+      },
+      onComplete: () => {
+        lastValueRef.current = targetValue;
       },
     });
 
     return () => {
-      gsap.killTweensOf(valueRef.current);
+      tween.kill();
     };
-  }, [targetValue, duration, delay]);
+  }, [targetValue, duration, delay, resetKey]);
 
   return ref;
 }
