@@ -1,89 +1,78 @@
 // ============================================
-// Fundly.id — Dribbble-Inspired Budget & Target Page (Full CRUD + Modals & Error Handling)
+// Fundly.id — Budget & Target Page (Full CRUD terhubung Supabase)
 // ============================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import {
   Plus,
-  Utensils,
-  Car,
-  ShoppingCart,
-  Gamepad2,
-  Receipt,
-  Heart,
   AlertCircle,
   CheckCircle2,
   Wallet,
   Target,
-  GraduationCap,
-  Palmtree,
   PieChart,
-  ShieldCheck,
   Edit2,
   Trash2,
-  Check,
   X,
   AlertTriangle,
-  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber/AnimatedNumber';
 import { SelectDropdown } from '../../components/ui/SelectDropdown/SelectDropdown';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
+import { Skeleton } from '../../components/ui/Skeleton/Skeleton';
+import { DataError } from '../../components/ui/DataError/DataError';
+import { formatCurrency, formatRupiahInput, parseCurrencyInput } from '../../utils/formatCurrency';
+import { budgetHealth, formatDeadline, goalProjection, spentForBudget } from '../../utils/finance';
+import { formatMonthYear, toISODate } from '../../utils/formatDate';
+import { COLOR_OPTIONS, DynamicIcon, getIcon, readableIconColor } from '../../utils/icons';
 import { cn } from '../../utils/cn';
+import { MONTHS } from '../../config/constants';
+import { ROUTES } from '../../config/routes';
+import { useFinanceStore } from '../../stores/financeStore';
+import { useCategoryMap, useCategoriesByType, useFinanceStatus } from '../../hooks/useFinance';
+import type { Budget, Goal } from '../../types/models';
 import styles from './BudgetPage.module.css';
 
-export interface BudgetItem {
-  id: string;
-  category: string;
-  spent: number;
-  limit: number;
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-  accentColor: string;
-}
-
-export interface GoalItem {
-  id: string;
-  name: string;
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-  current: number;
-  target: number;
-  color: string;
-  deadline: string;
-}
-
-const INITIAL_BUDGETS: BudgetItem[] = [
-  { id: 'b1', category: 'Makanan & Kuliner', spent: 4550000, limit: 6000000, icon: Utensils, accentColor: '#C6E83B' },
-  { id: 'b2', category: 'Transportasi & Tol', spent: 2600000, limit: 3000000, icon: Car, accentColor: '#5AC8FA' },
-  { id: 'b3', category: 'Belanja Bulanan', spent: 3250000, limit: 4000000, icon: ShoppingCart, accentColor: '#1C1C1E' },
-  { id: 'b4', category: 'Hiburan & Hobi', spent: 1040000, limit: 2000000, icon: Gamepad2, accentColor: '#AF52DE' },
-  { id: 'b5', category: 'Tagihan & Utility', spent: 1560000, limit: 2000000, icon: Receipt, accentColor: '#FF9500' },
-  { id: 'b6', category: 'Kesehatan & Obat', spent: 500000, limit: 1500000, icon: Heart, accentColor: '#34C759' },
-];
-
-const INITIAL_GOALS: GoalItem[] = [
-  { id: 'g1', name: 'Dana Darurat 6 Bulan', icon: ShieldCheck, current: 45000000, target: 60000000, color: '#C6E83B', deadline: 'Desember 2026' },
-  { id: 'g2', name: 'Beli Mobil Impian', icon: Car, current: 65000000, target: 100000000, color: '#5AC8FA', deadline: 'Juni 2027' },
-  { id: 'g3', name: 'Dana Pendidikan Anak', icon: GraduationCap, current: 24000000, target: 50000000, color: '#AF52DE', deadline: 'Desember 2028' },
-  { id: 'g4', name: 'Liburan Jepang 2027', icon: Palmtree, current: 16000000, target: 20000000, color: '#FF9500', deadline: 'Maret 2027' },
-];
-
 type BudgetFilter = 'all' | 'warning' | 'safe';
+type ModalKind = 'addBudget' | 'editBudget' | 'addGoal' | 'editGoal' | 'deleteConfirm' | null;
+
+const MONTH_OPTIONS = MONTHS.map((m, i) => ({ value: String(i), label: m }));
 
 export const BudgetPage: React.FC = () => {
-  const [budgets, setBudgets] = useState<BudgetItem[]>(INITIAL_BUDGETS);
-  const [goals, setGoals] = useState<GoalItem[]>(INITIAL_GOALS);
+  const navigate = useNavigate();
+  const { isLoading, isError, error, reload } = useFinanceStatus();
+  const allBudgets = useFinanceStore((s) => s.budgets);
+  const transactions = useFinanceStore((s) => s.transactions);
+  const goals = useFinanceStore((s) => s.goals);
+  const saveBudget = useFinanceStore((s) => s.saveBudget);
+  const deleteBudget = useFinanceStore((s) => s.deleteBudget);
+  const copyBudgets = useFinanceStore((s) => s.copyBudgets);
+  const addGoal = useFinanceStore((s) => s.addGoal);
+  const updateGoal = useFinanceStore((s) => s.updateGoal);
+  const deleteGoal = useFinanceStore((s) => s.deleteGoal);
+  const categoriesById = useCategoryMap();
+  const expenseCategories = useCategoriesByType('expense');
+
+  const now = new Date();
+  const [period, setPeriod] = useState({ month: now.getMonth() + 1, year: now.getFullYear() });
   const [filter, setFilter] = useState<BudgetFilter>('all');
 
   // Modal State
-  const [activeModal, setActiveModal] = useState<'addBudget' | 'editBudget' | 'addGoal' | 'editGoal' | 'deleteConfirm' | null>(null);
+  const [activeModal, setActiveModal] = useState<ModalKind>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'budget' | 'goal'; id: string; name: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
 
   // Form State Budget
   const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
-  const [formCategory, setFormCategory] = useState('Makanan & Kuliner');
+  const [formCategory, setFormCategory] = useState('');
   const [formLimit, setFormLimit] = useState('');
 
   // Form State Goal
@@ -91,203 +80,253 @@ export const BudgetPage: React.FC = () => {
   const [formGoalName, setFormGoalName] = useState('');
   const [formGoalTarget, setFormGoalTarget] = useState('');
   const [formGoalCurrent, setFormGoalCurrent] = useState('');
-  const [formGoalMonth, setFormGoalMonth] = useState('Desember');
-  const [formGoalYear, setFormGoalYear] = useState('2027');
-
-  // Notification Toast State
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [formGoalMonth, setFormGoalMonth] = useState('11');
+  const [formGoalYear, setFormGoalYear] = useState(String(now.getFullYear() + 1));
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const isCurrentPeriod = period.month === now.getMonth() + 1 && period.year === now.getFullYear();
+  const prevPeriod = period.month === 1 ? { month: 12, year: period.year - 1 } : { month: period.month - 1, year: period.year };
+
+  // Budgets + realisasi pengeluaran untuk periode terpilih
+  const budgets = useMemo(
+    () =>
+      allBudgets
+        .filter((b) => b.month === period.month && b.year === period.year)
+        .map((b) => {
+          const cat = categoriesById.get(b.category_id);
+          const spent = spentForBudget(transactions, b);
+          return {
+            ...b,
+            name: cat?.name || 'Kategori dihapus',
+            icon: cat?.icon || 'tag',
+            color: cat?.color || '#AEAEB2',
+            spent,
+            health: budgetHealth(spent, b.amount_limit),
+          };
+        })
+        .sort((a, b) => b.spent / b.amount_limit - a.spent / a.amount_limit),
+    [allBudgets, transactions, categoriesById, period],
+  );
+
+  const prevBudgetCount = allBudgets.filter((b) => b.month === prevPeriod.month && b.year === prevPeriod.year).length;
+
   const totalSpent = budgets.reduce((s, b) => s + b.spent, 0);
-  const totalLimit = budgets.reduce((s, b) => s + b.limit, 0);
+  const totalLimit = budgets.reduce((s, b) => s + b.amount_limit, 0);
   const totalPct = totalLimit > 0 ? Math.round((totalSpent / totalLimit) * 100) : 0;
+  const warningCount = budgets.filter((b) => b.health !== 'safe').length;
 
   const filteredBudgets = budgets.filter((b) => {
-    const pct = (b.spent / b.limit) * 100;
-    if (filter === 'warning') return pct >= 80;
-    if (filter === 'safe') return pct < 80;
+    if (filter === 'warning') return b.health !== 'safe';
+    if (filter === 'safe') return b.health === 'safe';
     return true;
   });
 
-  // Trigger Toast Notification
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
   // GSAP Progress Bar Animation
+  const animKey = `${filter}-${period.month}-${period.year}-${budgets.length}-${isLoading}`;
   useEffect(() => {
     if (!containerRef.current) return;
     const bars = containerRef.current.querySelectorAll(`.${styles.progressFill}`);
     gsap.fromTo(
       bars,
       { width: '0%' },
-      { width: (i, target) => (target as HTMLElement).dataset.width + '%', duration: 0.8, ease: 'power2.out', stagger: 0.08 }
+      { width: (_, target) => (target as HTMLElement).dataset.width + '%', duration: 0.8, ease: 'power2.out', stagger: 0.08 },
     );
-  }, [filter, budgets]);
+  }, [animKey]);
 
-  // Open Add Budget Modal
+  // Pastikan lebar progress tetap akurat saat data realtime berubah
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.querySelectorAll<HTMLElement>(`.${styles.progressFill}`).forEach((el) => {
+      el.style.width = `${el.dataset.width}%`;
+    });
+  }, [budgets]);
+
+  const shiftPeriod = (delta: number) => {
+    setPeriod((p) => {
+      const d = new Date(p.year, p.month - 1 + delta, 1);
+      return { month: d.getMonth() + 1, year: d.getFullYear() };
+    });
+  };
+
+  // ---- Budget modal ----
+  const availableCategories = useMemo(() => {
+    const used = new Set(budgets.map((b) => b.category_id));
+    return expenseCategories.filter((c) => !used.has(c.id) || c.id === formCategory);
+  }, [expenseCategories, budgets, formCategory]);
+
   const openAddBudgetModal = () => {
-    setFormCategory('Makanan & Kuliner');
+    const used = new Set(budgets.map((b) => b.category_id));
+    const firstFree = expenseCategories.find((c) => !used.has(c.id));
+    if (!firstFree) {
+      toast.error(
+        expenseCategories.length === 0
+          ? 'Belum ada kategori pengeluaran. Tambahkan kategori di Pengaturan.'
+          : 'Semua kategori pengeluaran sudah memiliki anggaran di bulan ini.',
+      );
+      return;
+    }
+    setEditingBudgetId(null);
+    setFormCategory(firstFree.id);
     setFormLimit('');
-    setErrorMessage(null);
     setActiveModal('addBudget');
   };
 
-  // Helper format rupiah input (e.g. 6000000 -> "6.000.000")
-  const formatRupiahInput = (val: string | number) => {
-    if (!val && val !== 0) return '';
-    const cleanNum = val.toString().replace(/\D/g, '');
-    if (!cleanNum) return '';
-    return new Intl.NumberFormat('id-ID').format(parseInt(cleanNum, 10));
-  };
-
-  // Open Edit Budget Modal
-  const openEditBudgetModal = (item: BudgetItem) => {
+  const openEditBudgetModal = (item: Budget) => {
     setEditingBudgetId(item.id);
-    setFormCategory(item.category);
-    setFormLimit(formatRupiahInput(item.limit));
-    setErrorMessage(null);
+    setFormCategory(item.category_id);
+    setFormLimit(formatRupiahInput(item.amount_limit));
     setActiveModal('editBudget');
   };
 
-  // Open Add Goal Modal (Default current money set to total spent or 0 formatted)
+  // ---- Goal modal ----
   const openAddGoalModal = () => {
+    setEditingGoalId(null);
     setFormGoalName('');
     setFormGoalTarget('');
-    setFormGoalCurrent('0');
-    setFormGoalMonth('Desember');
-    setFormGoalYear('2027');
-    setErrorMessage(null);
+    setFormGoalCurrent('');
+    setFormGoalMonth('11');
+    setFormGoalYear(String(now.getFullYear() + 1));
     setActiveModal('addGoal');
   };
 
-  // Open Edit Goal Modal
-  const openEditGoalModal = (item: GoalItem) => {
+  const openEditGoalModal = (item: Goal) => {
     setEditingGoalId(item.id);
     setFormGoalName(item.name);
-    setFormGoalTarget(formatRupiahInput(item.target));
-    setFormGoalCurrent(formatRupiahInput(item.current));
-    
-    // Parse deadline string e.g. "Desember 2027" or "Maret 2027"
-    const parts = item.deadline.split(' ');
-    if (parts.length >= 2) {
-      setFormGoalMonth(parts[0]);
-      setFormGoalYear(parts[1]);
+    setFormGoalTarget(formatRupiahInput(item.target_amount));
+    setFormGoalCurrent(item.current_amount ? formatRupiahInput(item.current_amount) : '');
+    if (item.deadline) {
+      setFormGoalMonth(String(Number(item.deadline.slice(5, 7)) - 1));
+      setFormGoalYear(item.deadline.slice(0, 4));
     } else {
-      setFormGoalMonth('Desember');
-      setFormGoalYear('2027');
+      setFormGoalMonth('11');
+      setFormGoalYear(String(now.getFullYear() + 1));
     }
-
-    setErrorMessage(null);
     setActiveModal('editGoal');
   };
 
-  // Open Delete Confirm Modal
   const openDeleteConfirm = (type: 'budget' | 'goal', id: string, name: string) => {
     setDeleteTarget({ type, id, name });
     setActiveModal('deleteConfirm');
   };
 
-  // Handle Save Budget (Add / Edit)
-  const handleSaveBudget = (e: React.FormEvent) => {
-    e.preventDefault();
-    const limitNum = parseInt(formLimit.replace(/\D/g, ''));
+  const closeModal = () => {
+    if (!isSubmitting) setActiveModal(null);
+  };
 
-    if (isNaN(limitNum) || limitNum <= 0) {
-      setErrorMessage('Nominal limit harus angka yang valid & lebih besar dari 0!');
+  // Handle Save Budget (Add / Edit)
+  const handleSaveBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const limitNum = parseCurrencyInput(formLimit);
+    if (!formCategory) {
+      toast.error('Pilih kategori anggaran.');
+      return;
+    }
+    if (limitNum <= 0) {
+      toast.error('Nominal limit harus angka yang valid & lebih besar dari 0!');
+      return;
+    }
+    const catName = categoriesById.get(formCategory)?.name || 'kategori';
+    if (activeModal === 'addBudget' && budgets.some((b) => b.category_id === formCategory)) {
+      toast.error(`Anggaran untuk kategori ${catName} sudah ada di bulan ini!`);
       return;
     }
 
-    if (activeModal === 'addBudget') {
-      const exists = budgets.some((b) => b.category.toLowerCase() === formCategory.toLowerCase());
-      if (exists) {
-        setErrorMessage(`Anggaran untuk kategori ${formCategory} sudah ada!`);
-        return;
-      }
-
-      const newEntry: BudgetItem = {
-        id: `b-${Date.now()}`,
-        category: formCategory,
-        spent: 0,
-        limit: limitNum,
-        icon: ShoppingCart,
-        accentColor: '#C6E83B',
-      };
-      setBudgets([newEntry, ...budgets]);
-      showToast(`Berhasil menambahkan anggaran ${formCategory}`);
-    } else if (activeModal === 'editBudget' && editingBudgetId) {
-      setBudgets(
-        budgets.map((b) =>
-          b.id === editingBudgetId
-            ? { ...b, category: formCategory, limit: limitNum }
-            : b
-        )
+    setIsSubmitting(true);
+    try {
+      await saveBudget(
+        { category_id: formCategory, amount_limit: limitNum, month: period.month, year: period.year },
+        activeModal === 'editBudget' ? editingBudgetId : null,
       );
-      showToast(`Berhasil meng-update anggaran ${formCategory}`);
+      toast.success(activeModal === 'addBudget' ? `Berhasil menambahkan anggaran ${catName}` : `Berhasil memperbarui anggaran ${catName}`);
+      setActiveModal(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menyimpan anggaran.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setActiveModal(null);
   };
 
   // Handle Save Goal (Add / Edit)
-  const handleSaveGoal = (e: React.FormEvent) => {
+  const handleSaveGoal = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetNum = parseInt(formGoalTarget.replace(/\D/g, ''));
-    const currentNum = parseInt(formGoalCurrent.replace(/\D/g, '')) || 0;
-    const deadlineStr = `${formGoalMonth} ${formGoalYear}`;
+    const targetNum = parseCurrencyInput(formGoalTarget);
+    const currentNum = parseCurrencyInput(formGoalCurrent);
+    const name = formGoalName.trim();
 
-    if (!formGoalName.trim()) {
-      setErrorMessage('Nama target tidak boleh kosong!');
+    if (!name) {
+      toast.error('Nama target tidak boleh kosong!');
       return;
     }
-    if (isNaN(targetNum) || targetNum <= 0) {
-      setErrorMessage('Nominal target harus lebih besar dari 0!');
+    if (targetNum <= 0) {
+      toast.error('Nominal target harus lebih besar dari 0!');
       return;
     }
+    const deadline = toISODate(new Date(Number(formGoalYear), Number(formGoalMonth) + 1, 0));
 
-    if (activeModal === 'addGoal') {
-      const newGoal: GoalItem = {
-        id: `g-${Date.now()}`,
-        name: formGoalName,
-        icon: Target,
-        current: currentNum,
-        target: targetNum,
-        color: '#5AC8FA',
-        deadline: deadlineStr,
-      };
-      setGoals([...goals, newGoal]);
-      showToast(`Berhasil membuat target ${formGoalName}`);
-    } else if (activeModal === 'editGoal' && editingGoalId) {
-      setGoals(
-        goals.map((g) =>
-          g.id === editingGoalId
-            ? { ...g, name: formGoalName, target: targetNum, current: currentNum, deadline: deadlineStr }
-            : g
-        )
-      );
-      showToast(`Berhasil meng-update target ${formGoalName}`);
+    setIsSubmitting(true);
+    try {
+      if (activeModal === 'addGoal') {
+        await addGoal({
+          name,
+          target_amount: targetNum,
+          current_amount: currentNum,
+          deadline,
+          icon: 'target',
+          color: COLOR_OPTIONS[goals.length % COLOR_OPTIONS.length],
+        });
+        toast.success(`Berhasil membuat target ${name}`);
+      } else if (editingGoalId) {
+        await updateGoal(editingGoalId, { name, target_amount: targetNum, current_amount: currentNum, deadline });
+        toast.success(`Berhasil memperbarui target ${name}`);
+      }
+      setActiveModal(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menyimpan target.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setActiveModal(null);
   };
 
   // Confirm Delete Handler
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-
-    if (deleteTarget.type === 'budget') {
-      setBudgets(budgets.filter((b) => b.id !== deleteTarget.id));
-      showToast(`Anggaran "${deleteTarget.name}" berhasil dihapus`);
-    } else {
-      setGoals(goals.filter((g) => g.id !== deleteTarget.id));
-      showToast(`Target "${deleteTarget.name}" berhasil dihapus`);
+    setIsSubmitting(true);
+    try {
+      if (deleteTarget.type === 'budget') {
+        await deleteBudget(deleteTarget.id);
+        toast.success(`Anggaran "${deleteTarget.name}" berhasil dihapus`);
+      } else {
+        await deleteGoal(deleteTarget.id);
+        toast.success(`Target "${deleteTarget.name}" berhasil dihapus`);
+      }
+      setActiveModal(null);
+      setDeleteTarget(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menghapus data.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setActiveModal(null);
-    setDeleteTarget(null);
   };
+
+  const handleCopyPrevious = async () => {
+    setIsCopying(true);
+    try {
+      const count = await copyBudgets(prevPeriod, period);
+      toast.success(count > 0 ? `${count} anggaran disalin dari ${formatMonthYear(prevPeriod.year, prevPeriod.month - 1)}` : 'Tidak ada anggaran baru untuk disalin');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menyalin anggaran.');
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const yearOptions = Array.from({ length: 16 }, (_, i) => {
+    const y = String(now.getFullYear() + i - 1);
+    return { value: y, label: y };
+  });
+
+  if (isError) return <DataError message={error} onRetry={() => void reload()} />;
 
   return (
     <div className={styles.page} ref={containerRef}>
@@ -307,7 +346,7 @@ export const BudgetPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Dribbble Hero Overview Card */}
+      {/* Hero Overview Card */}
       <div className={styles.heroCard}>
         <div className={styles.heroHeader}>
           <div className={styles.heroBadge}>
@@ -316,7 +355,21 @@ export const BudgetPage: React.FC = () => {
             </div>
             <span>Overview Alokasi Anggaran</span>
           </div>
-          <span className={styles.monthPill}>Oktober 2026</span>
+          <div className={styles.monthNav}>
+            <button className={styles.monthNavBtn} onClick={() => shiftPeriod(-1)} aria-label="Bulan sebelumnya">
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              className={styles.monthPill}
+              onClick={() => setPeriod({ month: now.getMonth() + 1, year: now.getFullYear() })}
+              title={isCurrentPeriod ? 'Bulan berjalan' : 'Kembali ke bulan ini'}
+            >
+              {formatMonthYear(period.year, period.month - 1)}
+            </button>
+            <button className={styles.monthNavBtn} onClick={() => shiftPeriod(1)} aria-label="Bulan berikutnya">
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
 
         <div className={styles.heroBody}>
@@ -334,18 +387,18 @@ export const BudgetPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Hero Progress Bar */}
         <div className={styles.heroProgressBarTrack}>
           <div
             className={styles.heroProgressBarFill}
-            style={{ width: `${Math.min(totalPct, 100)}%` }}
+            style={{
+              width: `${Math.min(totalPct, 100)}%`,
+              background: totalPct > 100 ? 'var(--color-danger)' : totalPct >= 80 ? 'var(--color-warning)' : undefined,
+            }}
           />
         </div>
       </div>
 
-      {/* ============================================================ */}
-      {/* SECTION 1: ANGGARAN BULANAN (BUDGET CARDS) */}
-      {/* ============================================================ */}
+      {/* SECTION 1: ANGGARAN BULANAN */}
       <div className={styles.sectionTitleRow}>
         <div className={styles.sectionHeaderTitle}>
           <Wallet size={20} style={{ color: 'var(--color-primary)' }} />
@@ -353,164 +406,208 @@ export const BudgetPage: React.FC = () => {
           <span className={styles.periodPill}>Per Bulan</span>
         </div>
         <div className={styles.filterTabs}>
-          <button
-            className={cn(styles.filterTab, filter === 'all' && styles.filterActive)}
-            onClick={() => setFilter('all')}
-          >
+          <button className={cn(styles.filterTab, filter === 'all' && styles.filterActive)} onClick={() => setFilter('all')}>
             Semua ({budgets.length})
           </button>
-          <button
-            className={cn(styles.filterTab, filter === 'warning' && styles.filterActive)}
-            onClick={() => setFilter('warning')}
-          >
+          <button className={cn(styles.filterTab, filter === 'warning' && styles.filterActive)} onClick={() => setFilter('warning')}>
             <AlertCircle size={14} style={{ color: 'var(--color-danger)' }} />
-            Batas Limit
+            Batas Limit{warningCount ? ` (${warningCount})` : ''}
           </button>
-          <button
-            className={cn(styles.filterTab, filter === 'safe' && styles.filterActive)}
-            onClick={() => setFilter('safe')}
-          >
+          <button className={cn(styles.filterTab, filter === 'safe' && styles.filterActive)} onClick={() => setFilter('safe')}>
             <CheckCircle2 size={14} style={{ color: 'var(--color-success)' }} />
             Aman
           </button>
         </div>
       </div>
 
-      <div className={styles.budgetGrid}>
-        {filteredBudgets.map((item) => {
-          const pct = Math.round((item.spent / item.limit) * 100);
-          const isOver = pct > 100;
-          const isWarning = pct >= 80 && pct <= 100;
-          const IconComp = item.icon;
+      {isLoading ? (
+        <div className={styles.budgetGrid}>
+          <Skeleton height="160px" borderRadius="20px" />
+          <Skeleton height="160px" borderRadius="20px" />
+          <Skeleton height="160px" borderRadius="20px" />
+        </div>
+      ) : budgets.length === 0 ? (
+        <div className={styles.emptyWrap}>
+          <EmptyState
+            icon={Wallet}
+            title={`Belum Ada Anggaran ${formatMonthYear(period.year, period.month - 1)}`}
+            description="Atur batas pengeluaran bulanan per kategori untuk menjaga kontrol keuangan Anda."
+            actionLabel="Tambah Anggaran"
+            actionIcon={<Plus size={16} />}
+            onAction={openAddBudgetModal}
+          />
+          {prevBudgetCount > 0 && (
+            <Button variant="outline" size="md" icon={<Copy size={15} />} loading={isCopying} onClick={() => void handleCopyPrevious()}>
+              Salin {prevBudgetCount} anggaran dari {formatMonthYear(prevPeriod.year, prevPeriod.month - 1)}
+            </Button>
+          )}
+        </div>
+      ) : filteredBudgets.length === 0 ? (
+        <EmptyState
+          icon={filter === 'warning' ? CheckCircle2 : AlertCircle}
+          title={filter === 'warning' ? 'Semua Anggaran Aman' : 'Tidak Ada Anggaran Aman'}
+          description={
+            filter === 'warning'
+              ? 'Belum ada kategori yang mendekati atau melewati batas limit bulan ini.'
+              : 'Semua anggaran sudah mendekati atau melewati batas limit.'
+          }
+        />
+      ) : (
+        <div className={styles.budgetGrid}>
+          {filteredBudgets.map((item) => {
+            const IconComp = getIcon(item.icon);
+            const pct = item.amount_limit > 0 ? Math.round((item.spent / item.amount_limit) * 100) : 0;
+            const isOver = item.health === 'over';
+            const isWarning = item.health === 'warning';
 
-          return (
-            <motion.div
-              key={item.id}
-              className={styles.budgetCard}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className={styles.cardTop}>
-                <div className={styles.cardTopLeft}>
-                  <div className={styles.cardIconBox} style={{ background: `${item.accentColor}1F`, color: item.accentColor === '#1C1C1E' ? 'var(--color-text-primary)' : item.accentColor }}>
-                    <IconComp size={20} />
+            return (
+              <motion.div
+                key={item.id}
+                className={cn(styles.budgetCard, isOver && styles.cardOver, isWarning && styles.cardWarning)}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className={styles.cardTop}>
+                  <div className={styles.cardTopLeft}>
+                    <div className={styles.cardIconBox} style={{ background: `${item.color}1F`, color: readableIconColor(item.color) }}>
+                      <IconComp size={20} />
+                    </div>
+                    <div className={styles.cardHeaderInfo}>
+                      <h3 className={styles.cardTitle}>{item.name}</h3>
+                      <span className={cn(styles.statusBadge, isOver ? styles.statusOver : isWarning ? styles.statusWarning : styles.statusSafe)}>
+                        {isOver ? 'Kelebihan' : isWarning ? 'Waspada' : 'Aman'}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.cardHeaderInfo}>
-                    <h3 className={styles.cardTitle}>{item.category}</h3>
-                    <span className={cn(styles.statusBadge, isOver ? styles.statusOver : isWarning ? styles.statusWarning : styles.statusSafe)}>
-                      {isOver ? 'Kelebihan' : isWarning ? 'Waspada' : 'Aman'}
-                    </span>
+
+                  <div className={styles.cardActionBtns}>
+                    <button className={styles.iconBtn} onClick={() => openEditBudgetModal(item)} title="Edit Anggaran">
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      className={cn(styles.iconBtn, styles.iconBtnDanger)}
+                      onClick={() => openDeleteConfirm('budget', item.id, item.name)}
+                      title="Hapus Anggaran"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
 
-                <div className={styles.cardActionBtns}>
-                  <button className={styles.iconBtn} onClick={() => openEditBudgetModal(item)} title="Edit Anggaran">
-                    <Edit2 size={14} />
-                  </button>
-                  <button className={cn(styles.iconBtn, styles.iconBtnDanger)} onClick={() => openDeleteConfirm('budget', item.id, item.category)} title="Hapus Anggaran">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-
-              <div className={styles.cardMiddle}>
-                <div className={styles.amountDisplay}>
-                  <AnimatedNumber value={item.spent} className={styles.spentAmount} />
-                  <span className={styles.limitAmount}>dari {formatCurrency(item.limit)}</span>
-                </div>
-                <span className={styles.pctBadge}>{pct}%</span>
-              </div>
-
-              <div className={styles.progressTrack}>
                 <div
-                  className={cn(styles.progressFill, isOver && styles.fillOver, isWarning && styles.fillWarning)}
-                  data-width={Math.min(pct, 100)}
-                  style={{ background: isOver ? 'var(--color-danger)' : isWarning ? 'var(--color-warning)' : item.accentColor }}
-                />
-              </div>
+                  className={styles.cardMiddle}
+                  role="button"
+                  style={{ cursor: 'pointer' }}
+                  title="Lihat transaksi kategori ini"
+                  onClick={() => {
+                    const from = `${period.year}-${String(period.month).padStart(2, '0')}-01`;
+                    const to = toISODate(new Date(period.year, period.month, 0));
+                    navigate(`${ROUTES.TRANSACTIONS}?category=${item.category_id}&type=expense&from=${from}&to=${to}`);
+                  }}
+                >
+                  <div className={styles.amountDisplay}>
+                    <AnimatedNumber value={item.spent} className={styles.spentAmount} />
+                    <span className={styles.limitAmount}>dari {formatCurrency(item.amount_limit)}</span>
+                  </div>
+                  <span className={styles.pctBadge}>{pct}%</span>
+                </div>
 
-              <div className={styles.cardBottom}>
-                <span className={styles.remainingText}>
-                  {isOver
-                    ? `Kelebihan ${formatCurrency(item.spent - item.limit)}`
-                    : `Sisa anggaran ${formatCurrency(item.limit - item.spent)}`}
-                </span>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+                <div className={styles.progressTrack}>
+                  <div
+                    className={cn(styles.progressFill, isOver && styles.fillOver, isWarning && styles.fillWarning)}
+                    data-width={Math.min(pct, 100)}
+                    style={{ background: isOver ? 'var(--color-danger)' : isWarning ? 'var(--color-warning)' : item.color }}
+                  />
+                </div>
 
-      {/* ============================================================ */}
-      {/* SECTION 2: TARGET FINANSIAL (GOALS CARDS) */}
-      {/* ============================================================ */}
+                <div className={styles.cardBottom}>
+                  <span className={styles.remainingText}>
+                    {isOver
+                      ? `Kelebihan ${formatCurrency(item.spent - item.amount_limit)}`
+                      : `Sisa anggaran ${formatCurrency(item.amount_limit - item.spent)}`}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* SECTION 2: TARGET FINANSIAL (GOALS) */}
       <div className={styles.sectionTitleRow} style={{ marginTop: 'var(--space-6)' }}>
         <div className={styles.sectionHeaderTitle}>
           <Target size={20} style={{ color: 'var(--color-primary)' }} />
           <h2>Target Tabungan & Impian (Goals)</h2>
         </div>
+        {goals.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.GOALS)}>
+            Kelola Dana Target <ChevronRight size={14} />
+          </Button>
+        )}
       </div>
 
-      <div className={styles.goalsGrid}>
-        {goals.map((goal) => {
-          const IconComp = goal.icon;
-          const pct = Math.round((goal.current / goal.target) * 100);
-          const isDone = pct >= 100;
-
-          return (
-            <motion.div 
-              key={goal.id} 
-              className={styles.goalCard}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <div className={styles.goalCardTop}>
-                <div className={styles.goalIconCircle} style={{ background: `${goal.color}20`, color: goal.color === '#1C1C1E' ? 'var(--color-text-primary)' : goal.color }}>
-                  <IconComp size={22} />
+      {isLoading ? (
+        <div className={styles.goalsGrid}>
+          <Skeleton height="150px" borderRadius="20px" />
+          <Skeleton height="150px" borderRadius="20px" />
+        </div>
+      ) : goals.length === 0 ? (
+        <EmptyState
+          icon={Target}
+          title="Belum Ada Target Tabungan"
+          description="Buat target untuk dana darurat, liburan, gadget, atau impian lainnya dan pantau progresnya."
+          actionLabel="Tambah Target"
+          actionIcon={<Plus size={16} />}
+          onAction={openAddGoalModal}
+        />
+      ) : (
+        <div className={styles.goalsGrid}>
+          {goals.map((goal) => {
+            const proj = goalProjection(goal);
+            return (
+              <motion.div key={goal.id} className={styles.goalCard} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                <div className={styles.goalCardTop}>
+                  <div className={styles.goalIconCircle} style={{ background: `${goal.color}20`, color: readableIconColor(goal.color) }}>
+                    <DynamicIcon name={goal.icon} size={22} fallback={Target} />
+                  </div>
+                  <div className={styles.cardActionBtns}>
+                    <button className={styles.iconBtn} onClick={() => openEditGoalModal(goal)} title="Edit Target">
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      className={cn(styles.iconBtn, styles.iconBtnDanger)}
+                      onClick={() => openDeleteConfirm('goal', goal.id, goal.name)}
+                      title="Hapus Target"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-                <div className={styles.cardActionBtns}>
-                  <button className={styles.iconBtn} onClick={() => openEditGoalModal(goal)} title="Edit Target">
-                    <Edit2 size={14} />
-                  </button>
-                  <button className={cn(styles.iconBtn, styles.iconBtnDanger)} onClick={() => openDeleteConfirm('goal', goal.id, goal.name)} title="Hapus Target">
-                    <Trash2 size={14} />
-                  </button>
+
+                <h3 className={styles.goalCardTitle}>{goal.name}</h3>
+                <p className={styles.goalDeadlineText}>
+                  {proj.achieved ? 'Target tercapai 🎉' : `Target s/d ${formatDeadline(goal.deadline)}`}
+                </p>
+
+                <div className={styles.goalAmountRow}>
+                  <AnimatedNumber value={goal.current_amount} className={styles.goalCurrentVal} />
+                  <span className={styles.goalTargetVal}>/ {formatCurrency(goal.target_amount)}</span>
                 </div>
-              </div>
 
-              <h3 className={styles.goalCardTitle}>{goal.name}</h3>
-              <p className={styles.goalDeadlineText}>Target s/d {goal.deadline}</p>
+                <div className={styles.goalTrack}>
+                  <div className={styles.goalFill} style={{ width: `${proj.percentage}%`, background: goal.color }} />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
-              <div className={styles.goalAmountRow}>
-                <AnimatedNumber value={goal.current} className={styles.goalCurrentVal} />
-                <span className={styles.goalTargetVal}>/ {formatCurrency(goal.target)}</span>
-              </div>
-
-              <div className={styles.goalTrack}>
-                <div
-                  className={styles.goalFill}
-                  style={{ width: `${Math.min(pct, 100)}%`, background: goal.color }}
-                />
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* ============================================================ */}
       {/* MODAL 1: ADD / EDIT BUDGET */}
-      {/* ============================================================ */}
       <AnimatePresence>
         {(activeModal === 'addBudget' || activeModal === 'editBudget') && (
-          <motion.div
-            className={styles.modalOverlay}
-            onClick={() => setActiveModal(null)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <motion.div className={styles.modalOverlay} onClick={closeModal} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div
               className={styles.modalCard}
               onClick={(e) => e.stopPropagation()}
@@ -522,52 +619,40 @@ export const BudgetPage: React.FC = () => {
                 <h3 className={styles.modalTitle}>
                   {activeModal === 'addBudget' ? 'Tambah Anggaran Baru' : 'Edit Anggaran Kategori'}
                 </h3>
-                <button className={styles.closeBtn} onClick={() => setActiveModal(null)}>
+                <button className={styles.closeBtn} onClick={closeModal} aria-label="Tutup">
                   <X size={18} />
                 </button>
               </div>
 
-              {errorMessage && (
-                <div className={styles.errorAlert}>
-                  <AlertCircle size={15} />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
-
               <form onSubmit={handleSaveBudget} className={styles.modalForm}>
                 <div className={styles.formGroup}>
-                  <label>Kategori</label>
+                  <label>Kategori Pengeluaran</label>
                   <SelectDropdown
                     fullWidth
                     value={formCategory}
                     onChange={(val) => setFormCategory(val)}
-                    options={[
-                      { value: 'Makanan & Kuliner', label: 'Makanan & Kuliner', icon: Utensils },
-                      { value: 'Transportasi & Tol', label: 'Transportasi & Tol', icon: Car },
-                      { value: 'Belanja Bulanan', label: 'Belanja Bulanan', icon: ShoppingCart },
-                      { value: 'Hiburan & Hobi', label: 'Hiburan & Hobi', icon: Gamepad2 },
-                      { value: 'Tagihan & Utility', label: 'Tagihan & Utility', icon: Receipt },
-                      { value: 'Kesehatan & Obat', label: 'Kesehatan & Obat', icon: Heart },
-                    ]}
+                    options={availableCategories.map((c) => ({ value: c.id, label: c.name, icon: getIcon(c.icon) }))}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Batas Limit Anggaran Per Bulan (Rp)</label>
+                  <label>Batas Limit Anggaran {formatMonthYear(period.year, period.month - 1)} (Rp)</label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     placeholder="Contoh: 5.000.000"
                     value={formLimit}
                     onChange={(e) => setFormLimit(formatRupiahInput(e.target.value))}
                     className={styles.formInput}
+                    autoFocus
                   />
                 </div>
 
                 <div className={styles.modalFooter}>
-                  <Button variant="ghost" size="md" type="button" onClick={() => setActiveModal(null)}>
+                  <Button variant="ghost" size="md" type="button" onClick={closeModal} disabled={isSubmitting}>
                     Batal
                   </Button>
-                  <Button variant="primary" size="md" type="submit">
+                  <Button variant="primary" size="md" type="submit" loading={isSubmitting}>
                     Simpan Anggaran
                   </Button>
                 </div>
@@ -577,18 +662,10 @@ export const BudgetPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* ============================================================ */}
       {/* MODAL 2: ADD / EDIT GOAL */}
-      {/* ============================================================ */}
       <AnimatePresence>
         {(activeModal === 'addGoal' || activeModal === 'editGoal') && (
-          <motion.div
-            className={styles.modalOverlay}
-            onClick={() => setActiveModal(null)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <motion.div className={styles.modalOverlay} onClick={closeModal} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div
               className={styles.modalCard}
               onClick={(e) => e.stopPropagation()}
@@ -600,17 +677,10 @@ export const BudgetPage: React.FC = () => {
                 <h3 className={styles.modalTitle}>
                   {activeModal === 'addGoal' ? 'Tambah Target Finansial Baru' : 'Edit Target Finansial'}
                 </h3>
-                <button className={styles.closeBtn} onClick={() => setActiveModal(null)}>
+                <button className={styles.closeBtn} onClick={closeModal} aria-label="Tutup">
                   <X size={18} />
                 </button>
               </div>
-
-              {errorMessage && (
-                <div className={styles.errorAlert}>
-                  <AlertCircle size={15} />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
 
               <form onSubmit={handleSaveGoal} className={styles.modalForm}>
                 <div className={styles.formGroup}>
@@ -619,8 +689,10 @@ export const BudgetPage: React.FC = () => {
                     type="text"
                     placeholder="Misal: Beli Mobil Impian"
                     value={formGoalName}
+                    maxLength={60}
                     onChange={(e) => setFormGoalName(e.target.value)}
                     className={styles.formInput}
+                    autoFocus
                   />
                 </div>
 
@@ -628,6 +700,7 @@ export const BudgetPage: React.FC = () => {
                   <label>Target Nominal (Rp)</label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     placeholder="Contoh: 100.000.000"
                     value={formGoalTarget}
                     onChange={(e) => setFormGoalTarget(formatRupiahInput(e.target.value))}
@@ -639,6 +712,7 @@ export const BudgetPage: React.FC = () => {
                   <label>Jumlah Terkumpul Saat Ini (Rp)</label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     placeholder="Contoh: 45.000.000"
                     value={formGoalCurrent}
                     onChange={(e) => setFormGoalCurrent(formatRupiahInput(e.target.value))}
@@ -649,45 +723,16 @@ export const BudgetPage: React.FC = () => {
                 <div className={styles.formGroup}>
                   <label>Tenggat Waktu / Deadline</label>
                   <div className={styles.deadlineRow}>
-                    <SelectDropdown
-                      fullWidth
-                      value={formGoalMonth}
-                      onChange={(val) => setFormGoalMonth(val)}
-                      options={[
-                        { value: 'Januari', label: 'Januari' },
-                        { value: 'Februari', label: 'Februari' },
-                        { value: 'Maret', label: 'Maret' },
-                        { value: 'April', label: 'April' },
-                        { value: 'Mei', label: 'Mei' },
-                        { value: 'Juni', label: 'Juni' },
-                        { value: 'Juli', label: 'Juli' },
-                        { value: 'Agustus', label: 'Agustus' },
-                        { value: 'September', label: 'September' },
-                        { value: 'Oktober', label: 'Oktober' },
-                        { value: 'November', label: 'November' },
-                        { value: 'Desember', label: 'Desember' },
-                      ]}
-                    />
-                    <SelectDropdown
-                      fullWidth
-                      value={formGoalYear}
-                      onChange={(val) => setFormGoalYear(val)}
-                      options={[
-                        { value: '2026', label: '2026' },
-                        { value: '2027', label: '2027' },
-                        { value: '2028', label: '2028' },
-                        { value: '2029', label: '2029' },
-                        { value: '2030', label: '2030' },
-                      ]}
-                    />
+                    <SelectDropdown fullWidth value={formGoalMonth} onChange={setFormGoalMonth} options={MONTH_OPTIONS} />
+                    <SelectDropdown fullWidth value={formGoalYear} onChange={setFormGoalYear} options={yearOptions} />
                   </div>
                 </div>
 
                 <div className={styles.modalFooter}>
-                  <Button variant="ghost" size="md" type="button" onClick={() => setActiveModal(null)}>
+                  <Button variant="ghost" size="md" type="button" onClick={closeModal} disabled={isSubmitting}>
                     Batal
                   </Button>
-                  <Button variant="primary" size="md" type="submit">
+                  <Button variant="primary" size="md" type="submit" loading={isSubmitting}>
                     Simpan Target
                   </Button>
                 </div>
@@ -697,18 +742,10 @@ export const BudgetPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* ============================================================ */}
       {/* MODAL 3: DELETE CONFIRMATION */}
-      {/* ============================================================ */}
       <AnimatePresence>
         {activeModal === 'deleteConfirm' && deleteTarget && (
-          <motion.div
-            className={styles.modalOverlay}
-            onClick={() => setActiveModal(null)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <motion.div className={styles.modalOverlay} onClick={closeModal} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div
               className={cn(styles.modalCard, styles.confirmModalCard)}
               onClick={(e) => e.stopPropagation()}
@@ -727,30 +764,14 @@ export const BudgetPage: React.FC = () => {
               </p>
 
               <div className={styles.confirmActions}>
-                <Button variant="ghost" size="md" onClick={() => setActiveModal(null)}>
+                <Button variant="ghost" size="md" onClick={closeModal} disabled={isSubmitting}>
                   Batal
                 </Button>
-                <Button variant="danger" size="md" onClick={handleConfirmDelete}>
+                <Button variant="danger" size="md" onClick={() => void handleConfirmDelete()} loading={isSubmitting}>
                   Ya, Hapus
                 </Button>
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Notification Toast */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            className={styles.toastPill}
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-          >
-            <Check size={16} color="var(--color-primary)" />
-            <span>{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
