@@ -17,14 +17,26 @@ import { PageLoader } from './components/ui/PageLoader/PageLoader';
 import { ROUTES } from './config/routes';
 
 // Code-Splitting / Lazy-Loaded Pages
-const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })));
-const TransactionsPage = lazy(() => import('./pages/transactions/TransactionsPage').then((m) => ({ default: m.TransactionsPage })));
-const AddTransactionPage = lazy(() => import('./pages/transactions/AddTransactionPage').then((m) => ({ default: m.AddTransactionPage })));
-const BudgetPage = lazy(() => import('./pages/budget/BudgetPage').then((m) => ({ default: m.BudgetPage })));
-const ReportsPage = lazy(() => import('./pages/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })));
-const GoalsPage = lazy(() => import('./pages/goals/GoalsPage').then((m) => ({ default: m.GoalsPage })));
-const AccountsPage = lazy(() => import('./pages/accounts/AccountsPage').then((m) => ({ default: m.AccountsPage })));
-const SettingsPage = lazy(() => import('./pages/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+// Loader dipisah agar bisa di-prefetch saat browser idle (pindah menu terasa instan)
+const pageLoaders = {
+  dashboard: () => import('./pages/dashboard/DashboardPage'),
+  transactions: () => import('./pages/transactions/TransactionsPage'),
+  addTransaction: () => import('./pages/transactions/AddTransactionPage'),
+  budget: () => import('./pages/budget/BudgetPage'),
+  goals: () => import('./pages/goals/GoalsPage'),
+  accounts: () => import('./pages/accounts/AccountsPage'),
+  settings: () => import('./pages/settings/SettingsPage'),
+  reports: () => import('./pages/reports/ReportsPage'),
+};
+
+const DashboardPage = lazy(() => pageLoaders.dashboard().then((m) => ({ default: m.DashboardPage })));
+const TransactionsPage = lazy(() => pageLoaders.transactions().then((m) => ({ default: m.TransactionsPage })));
+const AddTransactionPage = lazy(() => pageLoaders.addTransaction().then((m) => ({ default: m.AddTransactionPage })));
+const BudgetPage = lazy(() => pageLoaders.budget().then((m) => ({ default: m.BudgetPage })));
+const ReportsPage = lazy(() => pageLoaders.reports().then((m) => ({ default: m.ReportsPage })));
+const GoalsPage = lazy(() => pageLoaders.goals().then((m) => ({ default: m.GoalsPage })));
+const AccountsPage = lazy(() => pageLoaders.accounts().then((m) => ({ default: m.AccountsPage })));
+const SettingsPage = lazy(() => pageLoaders.settings().then((m) => ({ default: m.SettingsPage })));
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
@@ -68,9 +80,40 @@ const PublicAuthRoute: React.FC = () => {
   return <Outlet />;
 };
 
+/** Prefetch halaman lain saat browser idle, kecuali koneksi lambat / mode hemat data. */
+function prefetchPagesWhenIdle(): () => void {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return () => undefined;
+
+  const loaders = Object.values(pageLoaders);
+  const schedule =
+    window.requestIdleCallback?.bind(window) ?? ((cb: IdleRequestCallback) => window.setTimeout(() => cb({} as IdleDeadline), 1500));
+  const cancel = window.cancelIdleCallback?.bind(window) ?? window.clearTimeout.bind(window);
+
+  let index = 0;
+  let handle = 0;
+  const next = () => {
+    const load = loaders[index++];
+    if (!load) return;
+    load()
+      .catch(() => undefined)
+      .finally(() => {
+        handle = schedule(next, { timeout: 4000 });
+      });
+  };
+  handle = schedule(next, { timeout: 4000 });
+  return () => cancel(handle);
+}
+
 // Muat & sinkronkan data keuangan saat user login, bersihkan saat logout
 const FinanceSync: React.FC = () => {
   const userId = useAuthStore((s) => s.user?.id);
+  const financeReady = useFinanceStore((s) => s.status === 'ready');
+
+  useEffect(() => {
+    if (!userId || !financeReady) return;
+    return prefetchPagesWhenIdle();
+  }, [userId, financeReady]);
 
   useEffect(() => {
     if (userId) {

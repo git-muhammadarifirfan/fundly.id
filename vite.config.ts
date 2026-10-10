@@ -13,18 +13,16 @@ export default defineConfig({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
+        // Vendor dipisah per pustaka agar cache browser tetap terpakai antar-deploy
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react'
-            }
-            if (id.includes('framer-motion') || id.includes('gsap')) {
-              return 'vendor-motion'
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons'
-            }
-          }
+          if (!id.includes('node_modules')) return undefined
+          const path = id.replace(/\\/g, '/')
+          if (/\/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(path)) return 'vendor-react'
+          if (/\/node_modules\/(framer-motion|motion-dom|motion-utils|gsap)\//.test(path)) return 'vendor-motion'
+          if (/\/node_modules\/lucide-react\//.test(path)) return 'vendor-icons'
+          if (/\/node_modules\/@supabase\//.test(path)) return 'vendor-supabase'
+          if (/\/node_modules\/date-fns\//.test(path)) return 'vendor-date'
+          return undefined
         },
       },
     },
