@@ -43,6 +43,21 @@ interface AuthState {
 export function translateAuthError(error: AuthError | Error | string | null | undefined): string {
   const raw = typeof error === 'string' ? error : error?.message || '';
   const msg = raw.toLowerCase();
+  const status = typeof error === 'object' && error ? (error as { status?: number }).status : undefined;
+  const name = typeof error === 'object' && error ? (error as { name?: string }).name || '' : '';
+
+  // Server auth/email tidak merespons (504) atau request dihentikan karena timeout
+  if (
+    status === 504 ||
+    status === 502 ||
+    /timeout|aborted|aborterror/i.test(name) ||
+    msg.includes('timeout') ||
+    msg.includes('aborted') ||
+    msg.includes('signal is aborted')
+  ) {
+    console.warn('[Fundly] Request auth timeout / gateway error:', status, raw || name);
+    return 'Server sedang tidak merespons saat mengirim email verifikasi. Silakan coba lagi beberapa saat lagi.';
+  }
   if (!raw) return 'Terjadi kesalahan autentikasi.';
   if (msg.includes('invalid login credentials')) return 'Email atau kata sandi salah. Silakan periksa kembali.';
   if (msg.includes('email not confirmed')) return 'Email Anda belum dikonfirmasi. Silakan cek inbox (atau folder spam) Anda.';

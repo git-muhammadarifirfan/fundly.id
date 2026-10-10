@@ -81,6 +81,21 @@ const authStorage: SupportedStorage = {
   },
 };
 
+// ---- Batas waktu request Auth ----
+// Supabase Auth menunggu server email (SMTP) saat daftar / reset password. Jika SMTP
+// bermasalah, request bisa menggantung lama; batasi agar UI tidak loading selamanya.
+const AUTH_REQUEST_TIMEOUT_MS = 25_000;
+
+const fetchWithAuthTimeout: typeof fetch = (input, init) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  if (!url.includes('/auth/v1/')) return fetch(input, init);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new DOMException('Auth request timeout', 'TimeoutError')), AUTH_REQUEST_TIMEOUT_MS);
+  init?.signal?.addEventListener('abort', () => controller.abort(init.signal?.reason));
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+};
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -94,6 +109,9 @@ export const supabase = createClient(
     },
     realtime: {
       params: { eventsPerSecond: 10 },
+    },
+    global: {
+      fetch: fetchWithAuthTimeout,
     },
   },
 );
