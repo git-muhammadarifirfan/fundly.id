@@ -3,8 +3,8 @@
    Color Palette: Lime Green + Dark + White
    ============================================ */
 
-/* ---- Google Fonts ---- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* ---- Fonts ----
+   Inter dimuat lewat <link> di index.html (preconnect, non-blocking, hanya bobot yang dipakai). */
 
 /* ============================================
    CSS Custom Properties (Design Tokens)
@@ -57,7 +57,7 @@
 
   /* ---- Typography ---- */
   --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Menlo, Consolas, monospace;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
