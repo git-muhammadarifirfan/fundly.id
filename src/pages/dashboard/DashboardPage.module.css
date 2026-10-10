@@ -19,6 +19,12 @@
   padding: var(--space-2) 0;
 }
 
+.mobileHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .userGreeting {
   display: flex;
   align-items: center;
@@ -173,12 +179,20 @@
 }
 
 .desktopPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   background: var(--color-bg-input);
-  padding: var(--space-1) var(--space-3);
+  padding: 6px 12px;
   border-radius: var(--radius-full);
   color: var(--color-text-secondary);
+}
+
+.accountPillIcon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
 }
 
 .currencyPrefix {
@@ -189,7 +203,7 @@
 
 .balanceValue {
   font-size: var(--text-4xl);
-  font-weight: var(--font-extrabold);
+  font-weight: var(--font-bold);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
 }
@@ -421,7 +435,7 @@
   align-items: baseline;
   gap: 4px;
   font-size: var(--text-4xl);
-  font-weight: var(--font-extrabold);
+  font-weight: var(--font-bold);
   color: var(--color-text-primary);
   letter-spacing: var(--tracking-tight);
   margin-bottom: var(--space-1);
@@ -489,9 +503,12 @@
 
 .donutContainer {
   position: relative;
-  width: 160px;
-  height: 160px;
-  margin: var(--space-4) auto;
+  width: 200px;
+  height: 200px;
+  margin: var(--space-3) auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .donut {
@@ -506,24 +523,88 @@
 
 .donutCenter {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  width: 110px;
 }
 
 .donutPercentage {
   font-size: var(--text-2xl);
-  font-weight: var(--font-extrabold);
+  font-weight: var(--font-bold);
   color: var(--color-text-primary);
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .donutLabel {
-  font-size: var(--text-xs);
+  font-size: 11px;
+  font-weight: var(--font-medium);
   color: var(--color-text-secondary);
   margin-top: 4px;
+  line-height: 1.2;
+}
+
+/* ---- Cashflow Chart Tooltip ---- */
+.cfBars {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  max-width: 40px;
+  align-items: flex-end;
+  height: 100%;
+  position: relative;
+}
+
+.cfBarWrapper {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  cursor: pointer;
+}
+
+.cfBar {
+  width: 100%;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+  min-height: 4px;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.cfBarWrapper:hover .cfBar {
+  opacity: 0.85;
+  transform: scaleY(1.02);
+}
+
+.cfBarTooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-dark, #1C1C1E);
+  color: #FFFFFF;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+}
+
+.cfBarWrapper:hover .cfBarTooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .categoryLegend {
@@ -596,21 +677,6 @@
   gap: var(--space-2);
   height: 100%;
   justify-content: flex-end;
-}
-
-.cfBars {
-  display: flex;
-  gap: 3px;
-  width: 100%;
-  max-width: 40px;
-  align-items: flex-end;
-  height: 100%;
-}
-
-.cfBar {
-  flex: 1;
-  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
-  min-height: 4px;
 }
 
 .cfIncome {
@@ -794,4 +860,20 @@
   font-size: var(--text-lg);
   font-weight: var(--font-bold);
   flex-shrink: 0;
+}
+
+/* ---- Account pills as buttons ---- */
+button.desktopPill {
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+button.desktopPill:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-dark);
+}
+
+.desktopAccountPills {
+  flex-wrap: wrap;
 }

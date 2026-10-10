@@ -2,123 +2,183 @@
 // Fundly.id — Dashboard Page
 // ============================================
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import {
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
-  Plus,
-  Wallet,
-  ChevronDown,
-  MoreHorizontal,
-  Utensils,
-  Briefcase,
-  Car,
-  ShoppingCart,
-  Building2,
-  GraduationCap,
-  Palmtree,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowRight, Plus, Wallet, Building2, Settings, Target } from 'lucide-react';
 import { Card, CardHeader } from '../../components/ui/Card/Card';
 import { Button } from '../../components/ui/Button/Button';
+import { SelectDropdown } from '../../components/ui/SelectDropdown/SelectDropdown';
+import { Skeleton } from '../../components/ui/Skeleton/Skeleton';
+import { DataError } from '../../components/ui/DataError/DataError';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useCountUp } from '../../hooks/useAnimations';
+import { useAccountMap, useCategoryMap, useFinanceStatus } from '../../hooks/useFinance';
+import { useFinanceStore } from '../../stores/financeStore';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDateShort } from '../../utils/formatDate';
+import {
+  categoryBreakdown,
+  computeTotals,
+  formatPctChange,
+  goalProjection,
+  lastMonthsCashflow,
+  monthRange,
+  pctChange,
+  totalBalance as sumBalance,
+  yearCashflow,
+  type CategoryBreakdownItem,
+} from '../../utils/finance';
+import { DynamicIcon, readableIconColor } from '../../utils/icons';
 import { cn } from '../../utils/cn';
-import { ROUTES } from '../../config/routes';
+import { ROUTES, editTransactionPath } from '../../config/routes';
 import { MONTHS } from '../../config/constants';
+import { UserDropdown } from '../../components/layout/UserDropdown/UserDropdown';
+import { NotificationBell } from '../../components/layout/NotificationBell/NotificationBell';
+import type { Account, Category, Goal, Transaction } from '../../types/models';
 import styles from './DashboardPage.module.css';
 
-// ---- Demo Data ----
-const DEMO_CASH = 120000000;    // Rp 1.200.000 (Tunai)
-const DEMO_BANK = 8500000000;   // Rp 85.000.000 (Bank)
-const DEMO_BALANCE = DEMO_CASH + DEMO_BANK; // Total Saldo (Cash + Bank = Rp 86.200.000)
+interface CashflowItem {
+  month: string;
+  income: number;
+  expense: number;
+}
 
-const DEMO_INCOME = 250000000;  // Rp 2.500.000
-const DEMO_EXPENSE = 130000000; // Rp 1.300.000
-
-const DEMO_WEEKLY = [
-  { day: 'Min', amount: 30 },
-  { day: 'Sen', amount: 45 },
-  { day: 'Sel', amount: 65 },
-  { day: 'Rab', amount: 50 },
-  { day: 'Kam', amount: 80 },
-  { day: 'Jum', amount: 40 },
-  { day: 'Sab', amount: 90 },
-];
-
-const DEMO_TRANSACTIONS = [
-  { id: '1', amount: -5000000, category: 'Makanan', subcategory: 'Makan siang resto', type: 'expense' as const, date: '2025-01-23', icon: Utensils },
-  { id: '2', amount: 20000000, category: 'Freelance', subcategory: 'Project Client web redesign', type: 'income' as const, date: '2025-01-22', icon: Briefcase },
-  { id: '3', amount: -5000000, category: 'Makanan', subcategory: 'Belanja bahan makanan', type: 'expense' as const, date: '2025-01-22', icon: Utensils },
-  { id: '4', amount: -2500000, category: 'Transportasi', subcategory: 'Bensin & Tol Cipularang', type: 'expense' as const, date: '2025-01-22', icon: Car },
-  { id: '5', amount: -3500000, category: 'Belanja', subcategory: 'Baju & sepatu kerja', type: 'expense' as const, date: '2025-01-21', icon: ShoppingCart },
-];
-
-const DEMO_CATEGORIES_SPENDING = [
-  { name: 'Makanan', percentage: 30, color: '#FF6B6B' },
-  { name: 'Belanja', percentage: 20, color: '#DDA0DD' },
-  { name: 'Transport', percentage: 20, color: '#45B7D1' },
-  { name: 'Langganan', percentage: 15, color: '#FF9500' },
-  { name: 'Kafe', percentage: 10, color: '#96CEB4' },
-  { name: 'Utilitas', percentage: 5, color: '#FFEAA7' },
-];
-
-const DEMO_SAVINGS = [
-  { name: 'Tabungan Darurat', current: 800000000, target: 2000000000, percentage: 50, icon: Building2, color: '#C6E83B' },
-  { name: 'Dana Pendidikan', current: 800000000, target: 2000000000, percentage: 32, icon: GraduationCap, color: '#5AC8FA' },
-  { name: 'Dana Pensiun', current: 800000000, target: 2000000000, percentage: 9, icon: Palmtree, color: '#FF9500' },
-];
-
-const DEMO_CASHFLOW = [
-  { month: 'Jan', income: 320, expense: 180 },
-  { month: 'Feb', income: 280, expense: 220 },
-  { month: 'Mar', income: 350, expense: 200 },
-  { month: 'Apr', income: 300, expense: 250 },
-  { month: 'Mei', income: 280, expense: 190 },
-  { month: 'Jun', income: 324, expense: 243 },
-  { month: 'Jul', income: 310, expense: 220 },
-  { month: 'Ags', income: 290, expense: 260 },
-  { month: 'Sep', income: 340, expense: 200 },
-  { month: 'Okt', income: 300, expense: 230 },
-  { month: 'Nov', income: 280, expense: 210 },
-  { month: 'Des', income: 350, expense: 190 },
-];
+interface DashboardData {
+  isLoading: boolean;
+  totalBalance: number;
+  cashBalance: number;
+  nonCashBalance: number;
+  activeAccounts: Account[];
+  income: number;
+  expense: number;
+  incomeChange: number | null;
+  expenseChange: number | null;
+  recentTransactions: Transaction[];
+  goals: Goal[];
+  categoriesById: Map<string, Category>;
+  accountsById: Map<string, Account>;
+}
 
 export const DashboardPage: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const cardsRef = useRef<HTMLDivElement>(null);
-  const balanceRef = useCountUp(DEMO_BALANCE / 100, 1.2, 0.2);
-  const currentMonth = MONTHS[new Date().getMonth()];
+  const { isLoading, isError, error, reload } = useFinanceStatus();
 
-  // GSAP stagger animation on mount
-  useEffect(() => {
-    if (!cardsRef.current) return;
-    const cards = cardsRef.current.querySelectorAll('[data-animate]');
-    gsap.fromTo(
-      cards,
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: 'power3.out',
-        clearProps: 'all',
-      },
-    );
-  }, []);
+  const accounts = useFinanceStore((s) => s.accounts);
+  const transactions = useFinanceStore((s) => s.transactions);
+  const goals = useFinanceStore((s) => s.goals);
+  const categoriesById = useCategoryMap();
+  const accountsById = useAccountMap();
 
-  if (isMobile) {
-    return <MobileDashboard balanceRef={balanceRef} currentMonth={currentMonth} navigate={navigate} />;
+  const now = new Date();
+  const currentMonth = MONTHS[now.getMonth()];
+
+  const data = useMemo<DashboardData>(() => {
+    const activeAccounts = accounts.filter((a) => a.is_active);
+    const cashBalance = activeAccounts.filter((a) => a.type === 'cash').reduce((s, a) => s + a.balance, 0);
+    const total = sumBalance(accounts);
+    const today = new Date();
+    const thisMonth = computeTotals(transactions, monthRange(today.getFullYear(), today.getMonth()));
+    const lastMonth = computeTotals(transactions, monthRange(today.getFullYear(), today.getMonth() - 1));
+    return {
+      isLoading,
+      totalBalance: total,
+      cashBalance,
+      nonCashBalance: total - cashBalance,
+      activeAccounts,
+      income: thisMonth.income,
+      expense: thisMonth.expense,
+      incomeChange: pctChange(thisMonth.income, lastMonth.income),
+      expenseChange: pctChange(thisMonth.expense, lastMonth.expense),
+      recentTransactions: transactions.slice(0, 6),
+      goals,
+      categoriesById,
+      accountsById,
+    };
+  }, [accounts, transactions, goals, categoriesById, accountsById, isLoading]);
+
+  // Smooth count-up animation (nilai dalam Rupiah)
+  const balanceRef = useCountUp(isLoading ? 0 : data.totalBalance, 0.8, 0, isMobile);
+
+  if (isError) {
+    return <DataError message={error} onRetry={() => void reload()} />;
   }
 
-  return <DesktopDashboard cardsRef={cardsRef} balanceRef={balanceRef} currentMonth={currentMonth} navigate={navigate} />;
+  if (isMobile) {
+    return <MobileDashboard balanceRef={balanceRef} currentMonth={currentMonth} navigate={navigate} data={data} />;
+  }
+
+  return (
+    <DesktopDashboard
+      cardsRef={cardsRef}
+      balanceRef={balanceRef}
+      currentMonth={currentMonth}
+      navigate={navigate}
+      data={data}
+    />
+  );
 };
+
+// ============================================
+// Shared helpers
+// ============================================
+function describeTx(tx: Transaction, data: DashboardData) {
+  if (tx.type === 'transfer') {
+    const from = data.accountsById.get(tx.account_id)?.name || 'Akun';
+    const to = tx.to_account_id ? data.accountsById.get(tx.to_account_id)?.name || 'Akun' : 'Akun';
+    return { name: tx.note || `Transfer ${from} → ${to}`, category: 'Transfer', icon: 'arrow-left-right', color: '#5AC8FA' };
+  }
+  const cat = tx.category_id ? data.categoriesById.get(tx.category_id) : undefined;
+  return {
+    name: tx.note || cat?.name || 'Tanpa Kategori',
+    category: cat?.name || 'Tanpa Kategori',
+    icon: cat?.icon || 'tag',
+    color: cat?.color || '#AEAEB2',
+  };
+}
+
+const amountSign = (tx: Transaction) => (tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : '');
+
+const CashflowBars: React.FC<{ data: CashflowItem[]; chartRef: React.RefObject<HTMLDivElement | null>; height?: string }> = ({
+  data,
+  chartRef,
+  height,
+}) => {
+  const maxVal = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1);
+  return (
+    <div className={styles.cashflowChart} ref={chartRef} style={height ? { height, paddingTop: 'var(--space-2)' } : undefined}>
+      {data.map((item, idx) => {
+        const incomeH = item.income > 0 ? Math.max((item.income / maxVal) * 100, 4) : 0;
+        const expenseH = item.expense > 0 ? Math.max((item.expense / maxVal) * 100, 4) : 0;
+        return (
+          <div key={`${item.month}-${idx}`} className={styles.cfColumn}>
+            <div className={styles.cfBars}>
+              <div className={styles.cfBarWrapper}>
+                <div className={cn(styles.cfBar, styles.cfIncome)} style={{ height: `${incomeH}%` }} />
+                <span className={styles.cfBarTooltip}>+{formatCurrency(item.income)}</span>
+              </div>
+              <div className={styles.cfBarWrapper}>
+                <div className={cn(styles.cfBar, styles.cfExpense)} style={{ height: `${expenseH}%` }} />
+                <span className={styles.cfBarTooltip}>-{formatCurrency(item.expense)}</span>
+              </div>
+            </div>
+            <span className={styles.cfLabel}>{item.month}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+function useBarAnimation(chartRef: React.RefObject<HTMLDivElement | null>, key: string, enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || !chartRef.current) return;
+    const bars = chartRef.current.querySelectorAll(`.${styles.cfBar}`);
+    gsap.fromTo(bars, { scaleY: 0, transformOrigin: 'bottom' }, { scaleY: 1, duration: 0.4, stagger: 0.02, ease: 'power2.out' });
+  }, [chartRef, key, enabled]);
+}
 
 // ============================================
 // Mobile Dashboard
@@ -127,41 +187,30 @@ const MobileDashboard: React.FC<{
   balanceRef: React.RefObject<HTMLElement | null>;
   currentMonth: string;
   navigate: ReturnType<typeof useNavigate>;
-}> = ({ balanceRef, currentMonth, navigate }) => {
+  data: DashboardData;
+}> = ({ balanceRef, currentMonth, navigate, data }) => {
   const chartRef = useRef<HTMLDivElement>(null);
+  const transactions = useFinanceStore((s) => s.transactions);
+  const cashflowData = useMemo(() => lastMonthsCashflow(transactions, 6), [transactions]);
 
-  useEffect(() => {
-    if (!chartRef.current) return;
-    const bars = chartRef.current.querySelectorAll(`.${styles.weeklyBar}`);
-    gsap.fromTo(
-      bars,
-      { scaleY: 0, transformOrigin: 'bottom' },
-      { scaleY: 1, duration: 0.6, stagger: 0.05, ease: 'power2.out', delay: 0.5 },
-    );
-  }, []);
+  useBarAnimation(chartRef, 'mobile', !data.isLoading);
 
   return (
     <div className={styles.mobileDashboard}>
       {/* Mobile Header */}
       <div className={styles.mobileHeader}>
         <div className={styles.userGreeting}>
-          <div className={styles.mobileAvatar}>
-            <span>👤</span>
-          </div>
-          <div>
-            <h2 className={styles.greetingName}>Pengguna</h2>
-            <p className={styles.greetingRole}>Personal</p>
-          </div>
+          <UserDropdown mobileView />
         </div>
-        <button className={styles.notifBtn} aria-label="Notifikasi">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-          </svg>
-        </button>
+        <div className={styles.mobileHeaderActions}>
+          <button className={styles.notifBtn} aria-label="Pengaturan" onClick={() => navigate(ROUTES.SETTINGS)}>
+            <Settings size={20} />
+          </button>
+          <NotificationBell buttonClassName={styles.notifBtn} iconSize={22} />
+        </div>
       </div>
 
-      {/* Balance Card Mobile (100% Exact Screenshot Match) */}
+      {/* Balance Card Mobile */}
       <Card variant="primary" padding="lg" className={styles.balanceCard}>
         <div className={styles.balanceHeader}>
           <span className={styles.balanceLabel}>Balance</span>
@@ -169,43 +218,42 @@ const MobileDashboard: React.FC<{
         </div>
         <div className={styles.balanceAmount}>
           <span className={styles.currencyPrefix}>Rp.</span>
-          <span className={styles.balanceValue} ref={balanceRef as React.RefObject<HTMLSpanElement>}>0</span>
+          <span className={styles.balanceValue} ref={balanceRef as React.RefObject<HTMLSpanElement>}>
+            0
+          </span>
         </div>
 
         <div className={styles.balanceDetails}>
           <div className={styles.balanceStatsGroup}>
             <div className={styles.balanceItem}>
               <span className={styles.balanceItemLabel}>Income</span>
-              <span className={styles.balanceItemValue}>
-                {formatCurrency(DEMO_INCOME)}
-              </span>
+              <span className={styles.balanceItemValue}>{formatCurrency(data.income)}</span>
             </div>
             <div className={styles.balanceItem}>
               <span className={styles.balanceItemLabel}>Expenses</span>
-              <span className={styles.balanceItemValue}>
-                {formatCurrency(DEMO_EXPENSE)}
-              </span>
+              <span className={styles.balanceItemValue}>{formatCurrency(data.expense)}</span>
             </div>
           </div>
-          <Button
-            variant="dark"
-            size="sm"
-            className={styles.addTransactionBtn}
-            onClick={() => navigate(ROUTES.ADD_TRANSACTION)}
-          >
-            Add Transacation
+          <Button variant="dark" size="sm" className={styles.addTransactionBtn} onClick={() => navigate(ROUTES.ADD_TRANSACTION)}>
+            Add Transaction
           </Button>
         </div>
       </Card>
 
-      {/* Card Panjang Putih Konsisten untuk Dompet Tunai & Bank */}
-      <Card padding="md" className={styles.accountsCardMobile}>
+      {/* Card Tunai & Non-Tunai */}
+      <Card
+        padding="md"
+        className={styles.accountsCardMobile}
+        role="button"
+        onClick={() => navigate(ROUTES.ACCOUNTS)}
+        style={{ cursor: 'pointer' }}
+      >
         <div className={styles.accountColItem}>
           <div className={styles.accountColHeader}>
             <Wallet size={16} className={styles.accountIcon} />
             <span className={styles.accountColTitle}>Tunai (Cash)</span>
           </div>
-          <span className={styles.accountColValue}>{formatCurrency(DEMO_CASH)}</span>
+          <span className={styles.accountColValue}>{data.isLoading ? '…' : formatCurrency(data.cashBalance)}</span>
         </div>
 
         <div className={styles.accountColDivider} />
@@ -213,59 +261,80 @@ const MobileDashboard: React.FC<{
         <div className={styles.accountColItem}>
           <div className={styles.accountColHeader}>
             <Building2 size={16} className={styles.accountIcon} />
-            <span className={styles.accountColTitle}>Bank</span>
+            <span className={styles.accountColTitle}>Bank & E-Wallet</span>
           </div>
-          <span className={styles.accountColValue}>{formatCurrency(DEMO_BANK)}</span>
+          <span className={styles.accountColValue}>{data.isLoading ? '…' : formatCurrency(data.nonCashBalance)}</span>
         </div>
       </Card>
 
-      {/* Weekly Chart */}
+      {/* Arus Kas Chart (Mobile) */}
       <Card padding="md" className={styles.weeklyCard}>
-        <div className={styles.weeklyChart} ref={chartRef}>
-          {DEMO_WEEKLY.map((item, idx) => {
-            const maxAmount = Math.max(...DEMO_WEEKLY.map((w) => w.amount));
-            const height = (item.amount / maxAmount) * 100;
-            const isHighest = item.amount === maxAmount;
-            return (
-              <div key={idx} className={styles.weeklyColumn}>
-                <div
-                  className={cn(styles.weeklyBar, isHighest && styles.weeklyBarHighlight)}
-                  style={{ height: `${height}%` }}
-                />
-                <span className={styles.weeklyLabel}>{item.day}</span>
-              </div>
-            );
-          })}
+        <div className={styles.sectionHeader} style={{ marginBottom: 'var(--space-2)' }}>
+          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-bold)' }}>Arus Kas</h3>
+          <div className={styles.cfLegendInline}>
+            <span className={styles.cfLegDot} style={{ background: 'var(--color-primary)' }} /> Masuk
+            <span className={styles.cfLegDot} style={{ background: 'var(--color-dark)', marginLeft: 8 }} /> Keluar
+          </div>
         </div>
+        <CashflowBars data={cashflowData} chartRef={chartRef} height="160px" />
       </Card>
 
       {/* Recent Transactions */}
       <div className={styles.transactionSection}>
         <div className={styles.sectionHeader}>
           <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-bold)' }}>Transaksi Terakhir</h3>
+          {data.recentTransactions.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.TRANSACTIONS)}>
+              Semua <ArrowRight size={14} />
+            </Button>
+          )}
         </div>
         <div className={styles.transactionList}>
-          {DEMO_TRANSACTIONS.map((tx) => {
-            const IconComp = tx.icon;
-            return (
-              <div key={tx.id} className={styles.transactionCard}>
-                <div className={styles.txLeft}>
-                  <div className={cn(styles.txIconWrapper, tx.type === 'income' ? styles.txIconIncome : styles.txIconExpense)}>
-                    <IconComp size={20} />
+          {data.isLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '8px 0' }}>
+              <Skeleton height="56px" borderRadius="14px" />
+              <Skeleton height="56px" borderRadius="14px" />
+              <Skeleton height="56px" borderRadius="14px" />
+            </div>
+          ) : data.recentTransactions.length === 0 ? (
+            <div style={{ padding: 'var(--space-4) 0', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--text-xs)' }}>
+              Belum ada transaksi. Tekan <strong>Add Transaction</strong> untuk mulai mencatat.
+            </div>
+          ) : (
+            data.recentTransactions.map((tx) => {
+              const info = describeTx(tx, data);
+              return (
+                <div
+                  key={tx.id}
+                  className={styles.transactionCard}
+                  role="button"
+                  onClick={() => navigate(editTransactionPath(tx.id))}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className={styles.txLeft}>
+                    <div
+                      className={cn(styles.txIconWrapper, tx.type === 'income' ? styles.txIconIncome : styles.txIconExpense)}
+                    >
+                      <DynamicIcon name={info.icon} size={20} />
+                    </div>
+                    <div className={styles.txInfo}>
+                      <span className={styles.txCategoryTitle}>{info.name}</span>
+                      <span className={styles.txDateSmall}>{formatDateShort(tx.transaction_date)}</span>
+                    </div>
                   </div>
-                  <div className={styles.txInfo}>
-                    <span className={styles.txCategoryTitle}>{tx.category}</span>
-                    <span className={styles.txDateSmall}>{formatDateShort(tx.date)}</span>
+                  <div className={styles.txRight}>
+                    <span
+                      className={cn(styles.txAmountLarge, tx.type === 'income' ? styles.txIncome : styles.txExpense)}
+                      style={tx.type === 'transfer' ? { color: 'var(--color-info)' } : undefined}
+                    >
+                      {amountSign(tx)}
+                      {formatCurrency(tx.amount)}
+                    </span>
                   </div>
                 </div>
-                <div className={styles.txRight}>
-                  <span className={cn(styles.txAmountLarge, tx.type === 'income' ? styles.txIncome : styles.txExpense)}>
-                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>
@@ -280,27 +349,55 @@ const DesktopDashboard: React.FC<{
   balanceRef: React.RefObject<HTMLElement | null>;
   currentMonth: string;
   navigate: ReturnType<typeof useNavigate>;
-}> = ({ cardsRef, balanceRef, currentMonth, navigate }) => {
+  data: DashboardData;
+}> = ({ cardsRef, balanceRef, currentMonth, navigate, data }) => {
   const cashflowRef = useRef<HTMLDivElement>(null);
+  const transactions = useFinanceStore((s) => s.transactions);
+  const [categoryPeriod, setCategoryPeriod] = useState<'this' | 'last'>('this');
+  const [cashflowPeriod, setCashflowPeriod] = useState<string>('last12');
 
-  useEffect(() => {
-    if (!cashflowRef.current) return;
-    const bars = cashflowRef.current.querySelectorAll(`.${styles.cfBar}`);
-    gsap.fromTo(
-      bars,
-      { scaleY: 0, transformOrigin: 'bottom' },
-      { scaleY: 1, duration: 0.5, stagger: 0.03, ease: 'power2.out', delay: 0.4 },
+  const now = new Date();
+
+  const categories = useMemo<CategoryBreakdownItem[]>(() => {
+    const offset = categoryPeriod === 'this' ? 0 : -1;
+    return categoryBreakdown(
+      transactions,
+      data.categoriesById,
+      'expense',
+      monthRange(now.getFullYear(), now.getMonth() + offset),
     );
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions, data.categoriesById, categoryPeriod]);
+
+  const yearOptions = useMemo(() => {
+    const years = new Set<number>([now.getFullYear()]);
+    transactions.forEach((t) => years.add(Number(t.transaction_date.slice(0, 4))));
+    return [
+      { value: 'last12', label: '12 Bulan Terakhir' },
+      ...Array.from(years)
+        .sort((a, b) => b - a)
+        .map((y) => ({ value: String(y), label: `Tahun ${y}` })),
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions]);
+
+  const cashflowData = useMemo<CashflowItem[]>(
+    () => (cashflowPeriod === 'last12' ? lastMonthsCashflow(transactions, 12) : yearCashflow(transactions, Number(cashflowPeriod))),
+    [transactions, cashflowPeriod],
+  );
+
+  useBarAnimation(cashflowRef, cashflowPeriod, !data.isLoading);
+
+  const topGoals = data.goals.slice(0, 4);
+  const changeLabel = (change: number | null) => formatPctChange(change);
 
   return (
     <div className={styles.desktopDashboard} ref={cardsRef}>
       {/* Row 1: Balance + Category Spending */}
       <div className={styles.topRow}>
-        {/* My Balance */}
         <Card padding="lg" className={styles.balanceCardDesktop} data-animate>
           <CardHeader
-            title="Saldo Saya"
+            title="Total Uang Keseluruhan"
             action={
               <Button variant="primary" size="sm" onClick={() => navigate(ROUTES.ADD_TRANSACTION)} icon={<Plus size={16} />}>
                 Tambah Transaksi
@@ -312,10 +409,25 @@ const DesktopDashboard: React.FC<{
             <span ref={balanceRef as React.RefObject<HTMLSpanElement>}>0</span>
           </div>
           <div className={styles.desktopAccountPills}>
-            <span className={styles.desktopPill}>💵 Tunai (Cash): {formatCurrency(DEMO_CASH)}</span>
-            <span className={styles.desktopPill}>🏦 Bank: {formatCurrency(DEMO_BANK)}</span>
+            {data.activeAccounts.slice(0, 4).map((acc) => (
+              <button
+                key={acc.id}
+                type="button"
+                className={styles.desktopPill}
+                onClick={() => navigate(ROUTES.ACCOUNTS)}
+                title={`${acc.name}: ${formatCurrency(acc.balance)}`}
+              >
+                <DynamicIcon name={acc.icon} size={14} className={styles.accountPillIcon} /> {acc.name} ·{' '}
+                {formatCurrency(acc.balance, { compact: true })}
+              </button>
+            ))}
+            {data.activeAccounts.length > 4 && (
+              <button type="button" className={styles.desktopPill} onClick={() => navigate(ROUTES.ACCOUNTS)}>
+                +{data.activeAccounts.length - 4} akun lainnya
+              </button>
+            )}
           </div>
-          <p className={styles.desktopBalanceSub}>Saldo bulan {currentMonth}</p>
+          <p className={styles.desktopBalanceSub}>Arus kas bulan {currentMonth}</p>
 
           <div className={styles.incomeExpenseRow}>
             <Card variant="default" padding="sm" className={styles.ieCard}>
@@ -325,11 +437,16 @@ const DesktopDashboard: React.FC<{
               <div>
                 <div className={styles.ieHeader}>
                   <span className={styles.ieLabel}>Pemasukan</span>
-                  <span className={styles.ieChange} style={{ color: 'var(--color-success)' }}>
-                    <TrendingUp size={12} /> 45.2%
+                  <span
+                    className={styles.ieChange}
+                    style={{ color: (data.incomeChange ?? 1) >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}
+                    title="Dibanding bulan lalu"
+                  >
+                    {(data.incomeChange ?? 1) >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{' '}
+                    {changeLabel(data.incomeChange)}
                   </span>
                 </div>
-                <span className={styles.ieValue}>{formatCurrency(DEMO_INCOME)}</span>
+                <span className={styles.ieValue}>{formatCurrency(data.income)}</span>
               </div>
             </Card>
             <Card variant="default" padding="sm" className={styles.ieCard}>
@@ -339,11 +456,16 @@ const DesktopDashboard: React.FC<{
               <div>
                 <div className={styles.ieHeader}>
                   <span className={styles.ieLabel}>Pengeluaran</span>
-                  <span className={styles.ieChange} style={{ color: 'var(--color-danger)' }}>
-                    <TrendingDown size={12} /> 36.1%
+                  <span
+                    className={styles.ieChange}
+                    style={{ color: (data.expenseChange ?? 1) > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}
+                    title="Dibanding bulan lalu"
+                  >
+                    {(data.expenseChange ?? 1) > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{' '}
+                    {changeLabel(data.expenseChange)}
                   </span>
                 </div>
-                <span className={styles.ieValue}>{formatCurrency(DEMO_EXPENSE)}</span>
+                <span className={styles.ieValue}>{formatCurrency(data.expense)}</span>
               </div>
             </Card>
           </div>
@@ -355,53 +477,72 @@ const DesktopDashboard: React.FC<{
             <CardHeader
               title="Pengeluaran per Kategori"
               action={
-                <Button variant="ghost" size="sm">
-                  Bulan Ini <ChevronDown size={14} />
-                </Button>
+                <SelectDropdown
+                  value={categoryPeriod}
+                  onChange={(v) => setCategoryPeriod(v as 'this' | 'last')}
+                  options={[
+                    { value: 'this', label: 'Bulan Ini' },
+                    { value: 'last', label: 'Bulan Lalu' },
+                  ]}
+                />
               }
             />
-            {/* Donut Chart Placeholder */}
-            <div className={styles.donutContainer}>
-              <svg viewBox="0 0 120 120" className={styles.donut}>
-                {(() => {
-                  let offset = 0;
-                  const circumference = 2 * Math.PI * 45;
-                  return DEMO_CATEGORIES_SPENDING.map((cat, idx) => {
-                    const dash = (cat.percentage / 100) * circumference;
-                    const el = (
-                      <circle
-                        key={idx}
-                        cx="60"
-                        cy="60"
-                        r="45"
-                        fill="none"
-                        stroke={cat.color}
-                        strokeWidth="14"
-                        strokeDasharray={`${dash} ${circumference - dash}`}
-                        strokeDashoffset={-offset}
-                        strokeLinecap="round"
-                        className={styles.donutSegment}
-                      />
-                    );
-                    offset += dash;
-                    return el;
-                  });
-                })()}
-              </svg>
-              <div className={styles.donutCenter}>
-                <span className={styles.donutPercentage}>80%</span>
-                <span className={styles.donutLabel}>Total Pengeluaran</span>
+            {data.isLoading ? (
+              <Skeleton height="220px" borderRadius="16px" />
+            ) : categories.length === 0 ? (
+              <div style={{ padding: 'var(--space-4) 0', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--text-xs)' }}>
+                Belum ada pengeluaran di {categoryPeriod === 'this' ? 'bulan ini' : 'bulan lalu'}.
               </div>
-            </div>
-            <div className={styles.categoryLegend}>
-              {DEMO_CATEGORIES_SPENDING.map((cat) => (
-                <div key={cat.name} className={styles.legendItem}>
-                  <span className={styles.legendDot} style={{ background: cat.color }} />
-                  <span className={styles.legendName}>{cat.name}</span>
-                  <span className={styles.legendValue}>{cat.percentage}%</span>
+            ) : (
+              <>
+                <div className={styles.donutContainer}>
+                  <svg viewBox="0 0 120 120" className={styles.donut}>
+                    {(() => {
+                      let offset = 0;
+                      const circumference = 2 * Math.PI * 45;
+                      return categories.map((cat) => {
+                        const dash = (cat.amount / Math.max(1, categories.reduce((s, c) => s + c.amount, 0))) * circumference;
+                        const el = (
+                          <circle
+                            key={cat.id}
+                            cx="60"
+                            cy="60"
+                            r="45"
+                            fill="none"
+                            stroke={cat.color || '#C6E83B'}
+                            strokeWidth="14"
+                            strokeDasharray={`${dash} ${circumference - dash}`}
+                            strokeDashoffset={-offset}
+                            className={styles.donutSegment}
+                          >
+                            <title>
+                              {cat.name}: {formatCurrency(cat.amount)}
+                            </title>
+                          </circle>
+                        );
+                        offset += dash;
+                        return el;
+                      });
+                    })()}
+                  </svg>
+                  <div className={styles.donutCenter}>
+                    <span className={styles.donutPercentage}>
+                      {formatCurrency(categories.reduce((s, c) => s + c.amount, 0), { compact: true })}
+                    </span>
+                    <span className={styles.donutLabel}>Total Pengeluaran</span>
+                  </div>
                 </div>
-              ))}
-            </div>
+                <div className={styles.categoryLegend}>
+                  {categories.slice(0, 6).map((cat) => (
+                    <div key={cat.id} className={styles.legendItem}>
+                      <span className={styles.legendDot} style={{ background: cat.color || '#C6E83B' }} />
+                      <span className={styles.legendName}>{cat.name}</span>
+                      <span className={styles.legendValue}>{cat.percentage}%</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </Card>
         </div>
       </div>
@@ -416,40 +557,15 @@ const DesktopDashboard: React.FC<{
                 <span className={styles.cfLegDot} style={{ background: 'var(--color-primary)' }} /> Pemasukan
                 <span className={styles.cfLegDot} style={{ background: 'var(--color-dark)' }} /> Pengeluaran
               </div>
-              <Button variant="ghost" size="sm">
-                Tahun Ini <ChevronDown size={14} />
-              </Button>
-              <Button variant="ghost" size="sm" icon={<MoreHorizontal size={16} />} />
+              <SelectDropdown value={cashflowPeriod} onChange={setCashflowPeriod} options={yearOptions} />
             </div>
           }
         />
-        <div className={styles.cashflowChart} ref={cashflowRef}>
-          {DEMO_CASHFLOW.map((item, idx) => {
-            const maxVal = Math.max(...DEMO_CASHFLOW.flatMap((d) => [d.income, d.expense]));
-            const incomeH = (item.income / maxVal) * 100;
-            const expenseH = (item.expense / maxVal) * 100;
-            return (
-              <div key={idx} className={styles.cfColumn}>
-                <div className={styles.cfBars}>
-                  <div
-                    className={cn(styles.cfBar, styles.cfIncome)}
-                    style={{ height: `${incomeH}%` }}
-                  />
-                  <div
-                    className={cn(styles.cfBar, styles.cfExpense)}
-                    style={{ height: `${expenseH}%` }}
-                  />
-                </div>
-                <span className={styles.cfLabel}>{item.month}</span>
-              </div>
-            );
-          })}
-        </div>
+        {data.isLoading ? <Skeleton height="220px" borderRadius="16px" /> : <CashflowBars data={cashflowData} chartRef={cashflowRef} />}
       </Card>
 
       {/* Row 3: Recent Transactions + Savings */}
       <div className={styles.bottomRow}>
-        {/* Recent Transactions */}
         <Card padding="lg" className={styles.recentTxCard} data-animate>
           <CardHeader
             title="Transaksi Terbaru"
@@ -459,80 +575,114 @@ const DesktopDashboard: React.FC<{
               </Button>
             }
           />
-          <table className={styles.txTable}>
-            <thead>
-              <tr>
-                <th>Nama</th>
-                <th>Kategori</th>
-                <th>Tanggal</th>
-                <th>Jumlah</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {DEMO_TRANSACTIONS.map((tx) => {
-                const IconComp = tx.icon;
-                return (
-                  <tr key={tx.id}>
-                    <td>
-                      <div className={styles.txMerchant}>
-                        <span className={styles.txIcon}>
-                          <IconComp size={16} />
+          {data.isLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '12px 0' }}>
+              <Skeleton height="42px" borderRadius="10px" />
+              <Skeleton height="42px" borderRadius="10px" />
+              <Skeleton height="42px" borderRadius="10px" />
+            </div>
+          ) : data.recentTransactions.length === 0 ? (
+            <div style={{ padding: 'var(--space-4) 0', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--text-xs)' }}>
+              Belum ada transaksi. Tekan tombol <strong>+ Tambah Transaksi</strong> di atas untuk membuat transaksi pertama!
+            </div>
+          ) : (
+            <table className={styles.txTable}>
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Kategori</th>
+                  <th>Tanggal</th>
+                  <th>Jumlah</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recentTransactions.map((tx) => {
+                  const info = describeTx(tx, data);
+                  return (
+                    <tr key={tx.id} onClick={() => navigate(editTransactionPath(tx.id))} style={{ cursor: 'pointer' }}>
+                      <td>
+                        <div className={styles.txMerchant}>
+                          <span className={styles.txIcon} style={{ color: readableIconColor(info.color) }}>
+                            <DynamicIcon name={info.icon} size={16} />
+                          </span>
+                          <span>{info.name}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={styles.txCategoryBadge}>{info.category}</span>
+                      </td>
+                      <td className={styles.txDateCol}>{formatDateShort(tx.transaction_date)}</td>
+                      <td
+                        className={cn(tx.type === 'income' ? styles.txIncome : styles.txExpense)}
+                        style={tx.type === 'transfer' ? { color: 'var(--color-info)' } : undefined}
+                      >
+                        {amountSign(tx)} {formatCurrency(tx.amount)}
+                      </td>
+                      <td>
+                        <span className={cn(styles.statusBadge, tx.status === 'cleared' ? styles.statusComplete : styles.statusPending)}>
+                          {tx.status === 'cleared' ? 'Selesai' : 'Tertunda'}
                         </span>
-                        <span>{tx.category}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={styles.txCategoryBadge}>{tx.category}</span>
-                    </td>
-                    <td className={styles.txDateCol}>{formatDateShort(tx.date)}</td>
-                    <td className={cn(tx.type === 'income' ? styles.txIncome : styles.txExpense)}>
-                      {tx.type === 'income' ? '+' : '-'} {formatCurrency(Math.abs(tx.amount))}
-                    </td>
-                    <td>
-                      <span className={cn(styles.statusBadge, styles.statusComplete)}>Selesai</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </Card>
 
         {/* Savings Plan */}
         <Card padding="lg" className={styles.savingsCard} data-animate>
           <CardHeader
             title="Rencana Tabungan"
-            subtitle={formatCurrency(2400000000)}
-            action={<Button variant="ghost" size="sm" icon={<MoreHorizontal size={16} />} />}
+            subtitle={`Target ${formatCurrency(data.goals.reduce((acc, g) => acc + g.target_amount, 0))}`}
+            action={
+              <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.GOALS)}>
+                Kelola <ArrowRight size={14} />
+              </Button>
+            }
           />
-          <div className={styles.savingsList}>
-            {DEMO_SAVINGS.map((goal) => {
-              const GoalIcon = goal.icon;
-              return (
-                <div key={goal.name} className={styles.savingsItem}>
-                  <div className={styles.savingsIcon}>
-                    <GoalIcon size={18} />
-                  </div>
-                  <div className={styles.savingsInfo}>
-                    <span className={styles.savingsName}>{goal.name}</span>
-                    <span className={styles.savingsProgress}>
-                      {formatCurrency(goal.current)}/{formatCurrency(goal.target)}
-                    </span>
-                    <div className={styles.savingsBar}>
-                      <div
-                        className={styles.savingsBarFill}
-                        style={{ width: `${goal.percentage}%`, background: goal.color }}
-                      />
+          {data.isLoading ? (
+            <Skeleton height="160px" borderRadius="14px" />
+          ) : topGoals.length === 0 ? (
+            <div style={{ padding: 'var(--space-4) 0', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--text-xs)' }}>
+              Belum ada target tabungan.{' '}
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.GOALS)}
+                style={{ background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Buat target pertama
+              </button>
+            </div>
+          ) : (
+            <div className={styles.savingsList}>
+              {topGoals.map((goal) => {
+                const proj = goalProjection(goal);
+                const gColor = goal.color || '#C6E83B';
+                return (
+                  <div key={goal.id} className={styles.savingsItem} onClick={() => navigate(ROUTES.GOALS)} style={{ cursor: 'pointer' }}>
+                    <div className={styles.savingsIcon}>
+                      <DynamicIcon name={goal.icon} size={18} fallback={Target} />
                     </div>
+                    <div className={styles.savingsInfo}>
+                      <span className={styles.savingsName}>{goal.name}</span>
+                      <span className={styles.savingsProgress}>
+                        {formatCurrency(goal.current_amount)}/{formatCurrency(goal.target_amount)}
+                      </span>
+                      <div className={styles.savingsBar}>
+                        <div className={styles.savingsBarFill} style={{ width: `${proj.percentage}%`, background: gColor }} />
+                      </div>
+                    </div>
+                    <span className={styles.savingsPercent} style={{ color: readableIconColor(gColor) }}>
+                      {proj.percentage}%
+                    </span>
                   </div>
-                  <span className={styles.savingsPercent} style={{ color: goal.color }}>
-                    {goal.percentage}%
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
       </div>
     </div>
