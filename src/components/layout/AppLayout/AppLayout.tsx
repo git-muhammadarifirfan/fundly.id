@@ -3,7 +3,7 @@
 // ============================================
 
 import React, { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../Sidebar/Sidebar';
 import { MobileNav } from '../MobileNav/MobileNav';
 import { Header } from '../Header/Header';
@@ -14,6 +14,10 @@ import styles from './AppLayout.module.css';
 
 export const AppLayout: React.FC = () => {
   const isDesktop = useIsDesktop();
+  const { pathname } = useLocation();
+  // Form transaksi tampil layar penuh di HP agar numpad tidak tertutup nav bawah
+  const isFullscreenForm = pathname === '/transactions/add' || /^\/transactions\/[^/]+\/edit$/.test(pathname);
+  const showMobileNav = !isDesktop && !isFullscreenForm;
   return (
     <div className={styles.appContainer}>
       {/* Top Reading/Scroll Progress Bar */}
@@ -23,7 +27,7 @@ export const AppLayout: React.FC = () => {
       {isDesktop && <Sidebar />}
 
       {/* Main Content Area */}
-      <div className={styles.mainWrapper}>
+      <div className={`${styles.mainWrapper} ${showMobileNav ? '' : styles.noNav}`}>
         <Header />
 
         <main className={styles.content}>
@@ -36,7 +40,7 @@ export const AppLayout: React.FC = () => {
         </main>
 
         {/* Mobile Bottom Navigation - Visible on Mobile/Tablet */}
-        {!isDesktop && <MobileNav />}
+        {showMobileNav && <MobileNav />}
       </div>
     </div>
   );

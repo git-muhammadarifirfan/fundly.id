@@ -34,17 +34,19 @@ export const MobileNav: React.FC = () => {
   });
 
   const currentIndex = activeIndex === -1 ? 0 : activeIndex;
-  const bubbleLeftPercentage = (currentIndex * 20) + 10;
 
   return (
     <nav className={styles.mobileNav}>
       <div className={styles.navContainer}>
-        {/* Dynamic Bubble Indicator (Flat, NO SVG NOTCH, NO GLOW) */}
+        {/* Gelembung aktif: digeser dengan transform (GPU) selebar satu slot, bukan properti "left" */}
         <motion.div
-          className={styles.activeBubble}
-          animate={{ left: `${bubbleLeftPercentage}%` }}
-          transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-        />
+          className={styles.bubbleTrack}
+          initial={false}
+          animate={{ x: `${currentIndex * 100}%` }}
+          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+        >
+          <div className={styles.activeBubble} />
+        </motion.div>
 
         {/* Nav Items */}
         {NAV_ITEMS.map((item, index) => {
@@ -61,6 +63,7 @@ export const MobileNav: React.FC = () => {
             >
               <motion.div
                 className={styles.iconContainer}
+                initial={false}
                 animate={isActive ? { y: -24 } : { y: 0 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                 style={{ pointerEvents: 'none' }}

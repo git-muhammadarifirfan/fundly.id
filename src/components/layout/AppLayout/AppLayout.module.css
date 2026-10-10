@@ -5,6 +5,7 @@
 .appContainer {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   background: var(--color-bg);
   overflow-x: hidden;
@@ -15,6 +16,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
   /* Prevents flex children from overflowing horizontally */
 }
@@ -43,10 +45,19 @@
   box-sizing: border-box;
 }
 
-/* Mobile & Tablet Bottom Nav spacing */
+/* Mobile & Tablet: hormati safe area (notch / status bar / home indicator)
+   dan sisakan ruang untuk nav bawah + gelembung aktif di atasnya */
 @media (max-width: 1023px) {
   .contentInner {
-    padding: var(--space-4) var(--space-4) calc(var(--mobile-nav-h, 70px) + var(--space-6));
+    padding-top: calc(var(--space-4) + var(--safe-top));
+    padding-right: calc(var(--space-4) + var(--safe-right));
+    padding-left: calc(var(--space-4) + var(--safe-left));
+    padding-bottom: calc(var(--mobile-nav-total) + var(--space-8));
+  }
+
+  /* Halaman layar penuh (Tambah/Edit Transaksi) tanpa nav bawah */
+  .noNav .contentInner {
+    padding-bottom: calc(var(--space-4) + var(--safe-bottom));
   }
 }
 

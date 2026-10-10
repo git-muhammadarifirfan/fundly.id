@@ -10,7 +10,11 @@
   background: var(--color-bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   user-select: none;
-  flex-shrink: 0;
+  -webkit-user-select: none;
+  /* Numpad mengisi sisa tinggi layar: tombol lebih besar di HP tinggi, tetap muat di HP kecil */
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 340px;
   margin-bottom: var(--space-2);
 }
 
@@ -18,18 +22,21 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-1);
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .key {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
+  height: 100%;
+  min-height: 40px;
   border-radius: var(--radius-md);
   background: var(--color-bg-card);
   border: 1px solid var(--color-divider);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
   font-family: var(--font-primary);
   -webkit-tap-highlight-color: transparent;
 }

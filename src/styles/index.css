@@ -143,6 +143,16 @@
   --sidebar-collapsed-w: 80px;
   --mobile-nav-h: 70px;
 
+  /* ---- Safe area (notch, status bar, home indicator) ---- */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  /* Tinggi bar nav bawah + jarak dari tepi + home indicator */
+  --mobile-nav-bar-h: 64px;
+  --mobile-nav-gap: 12px;
+  --mobile-nav-total: calc(var(--mobile-nav-bar-h) + var(--mobile-nav-gap) + var(--safe-bottom));
+
   /* ---- Breakpoints (for JS reference) ---- */
   --bp-sm: 640px;
   --bp-md: 768px;
@@ -162,12 +172,9 @@
   padding: 0;
 }
 
-html,
-body,
-*,
-*::before,
-*::after {
-  scroll-behavior: smooth !important;
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -188,6 +195,61 @@ body {
   background-color: var(--color-bg);
   min-height: 100dvh;
   overflow-x: hidden;
+  /* Rasa aplikasi native: tanpa efek tarik/pantul yang memperlihatkan latar kosong */
+  overscroll-behavior-y: none;
+}
+
+/* Hilangkan jeda ketuk 300ms & zoom ketuk-ganda pada elemen interaktif */
+a,
+button,
+input,
+select,
+textarea,
+label,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+/* iOS men-zoom otomatis jika font input < 16px; cegah di perangkat sentuh */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
+/* Hormati pengaturan "kurangi gerakan" di HP/OS */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes fundlySkeletonPulse {
+  0% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes fundlySpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 img,

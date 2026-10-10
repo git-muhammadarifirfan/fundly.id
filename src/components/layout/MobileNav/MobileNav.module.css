@@ -4,14 +4,17 @@
 
 .mobileNav {
   position: fixed;
-  bottom: 20px;
+  /* Tepat di atas home indicator iPhone / gesture bar Android */
+  bottom: calc(var(--mobile-nav-gap, 12px) + var(--safe-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-sticky);
-  width: calc(100% - 32px);
-  max-width: 380px;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  width: calc(100% - 32px - var(--safe-left, 0px) - var(--safe-right, 0px));
+  max-width: 420px;
   pointer-events: none;
+  /* Lapisan komposit sendiri agar tidak ikut di-repaint saat halaman di-scroll */
+  will-change: transform;
+  contain: layout style;
 }
 
 /* Hide on desktop */
@@ -26,17 +29,30 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: var(--mobile-nav-bar-h, 64px);
   background: #1C1C1E;
   border-radius: 32px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
 }
 
+/* Jalur gelembung selebar satu slot (1/5); digeser via transform */
+.bubbleTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  will-change: transform;
+}
+
 /* Lime Green Solid Circle (NO GLOW, FLAT BUBBLE) */
 .activeBubble {
   position: absolute;
   top: -24px;
+  left: 50%;
   transform: translateX(-50%);
   width: 60px;
   height: 60px;
