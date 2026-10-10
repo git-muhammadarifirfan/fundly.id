@@ -1,17 +1,25 @@
 // ============================================
 // Fundly.id — Date Formatting Utilities
+// Semua tanggal transaksi memakai tanggal LOKAL perangkat (bukan UTC).
 // ============================================
 
-import { format, formatDistanceToNow, isToday, isYesterday, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isYesterday, isTomorrow, parseISO } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { DAYS_OF_WEEK, MONTHS } from '../config/constants';
+
+export const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'] as const;
+
+/** Format Date ke ISO lokal (yyyy-MM-dd) */
+export function toISODate(date: Date): string {
+  return format(date, 'yyyy-MM-dd');
+}
 
 /**
  * Format tanggal ke format Indonesia
  * @example formatDate("2025-01-23") → "23 Januari 2025"
  */
 export function formatDate(dateStr: string, formatStr?: string): string {
-  const date = typeof dateStr === 'string' ? parseISO(dateStr) : dateStr;
+  const date = parseISO(dateStr);
   return format(date, formatStr || 'dd MMMM yyyy', { locale: idLocale });
 }
 
@@ -25,10 +33,20 @@ export function formatDateShort(dateStr: string): string {
 }
 
 /**
+ * Format tanggal lengkap dengan nama hari
+ * @example formatDateLong("2025-01-23") → "Kamis, 23 Januari 2025"
+ */
+export function formatDateLong(dateStr: string): string {
+  const date = parseISO(dateStr);
+  return `${DAYS_OF_WEEK[date.getDay()]}, ${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+/**
  * Format waktu
  * @example formatTime("14:30:00") → "14:30"
  */
-export function formatTime(timeStr: string): string {
+export function formatTime(timeStr: string | null | undefined): string {
+  if (!timeStr) return '';
   const [hours, minutes] = timeStr.split(':');
   return `${hours}:${minutes}`;
 }
@@ -39,9 +57,10 @@ export function formatTime(timeStr: string): string {
  */
 export function formatRelativeDate(dateStr: string): string {
   const date = parseISO(dateStr);
-  
+
   if (isToday(date)) return 'Hari ini';
   if (isYesterday(date)) return 'Kemarin';
+  if (isTomorrow(date)) return 'Besok';
 
   return formatDistanceToNow(date, { addSuffix: true, locale: idLocale });
 }
@@ -65,29 +84,38 @@ export function getMonthName(monthIndex: number): string {
 
 /**
  * Format tanggal untuk header group
- * @example getDateGroupLabel("2025-01-23") → "Hari ini" / "Kemarin" / "23 Januari 2025"
+ * @example getDateGroupLabel("2025-01-23") → "Hari Ini" / "Kemarin" / "Kamis, 23 Januari 2025"
  */
 export function getDateGroupLabel(dateStr: string): string {
   const date = parseISO(dateStr);
-  
+
   if (isToday(date)) return 'Hari Ini';
   if (isYesterday(date)) return 'Kemarin';
 
-  return `${format(date, 'dd', { locale: idLocale })} ${getMonthName(date.getMonth())} ${date.getFullYear()}`;
+  return formatDateLong(dateStr);
 }
 
 /**
- * Tanggal sekarang format ISO (YYYY-MM-DD)
+ * Tanggal sekarang format ISO lokal (YYYY-MM-DD)
  */
 export function getTodayISO(): string {
   return format(new Date(), 'yyyy-MM-dd');
 }
 
 /**
- * Waktu sekarang format HH:mm:ss
+ * Waktu sekarang format HH:mm
  */
 export function getCurrentTime(): string {
-  return format(new Date(), 'HH:mm:ss');
+  return format(new Date(), 'HH:mm');
+}
+
+/**
+ * Rentang tanggal sebuah bulan (month 0-11)
+ */
+export function getMonthRange(year: number, month: number): { start: string; end: string } {
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  return { start: toISODate(start), end: toISODate(end) };
 }
 
 /**
@@ -95,10 +123,10 @@ export function getCurrentTime(): string {
  */
 export function getCurrentMonthRange(): { start: string; end: string } {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return {
-    start: format(start, 'yyyy-MM-dd'),
-    end: format(end, 'yyyy-MM-dd'),
-  };
+  return getMonthRange(now.getFullYear(), now.getMonth());
+}
+
+/** Label bulan-tahun, mis. "Oktober 2026" */
+export function formatMonthYear(year: number, month: number): string {
+  return `${MONTHS[month]} ${year}`;
 }

@@ -1,4 +1,3 @@
-export type { Database } from './database';
 export type {
   TransactionType,
   TransactionStatus,

@@ -1,11 +1,17 @@
 // ============================================
 // Fundly.id — Currency Formatting Utilities
+// Semua nominal di aplikasi disimpan & diproses dalam Rupiah utuh.
 // ============================================
 
 import { CURRENCY_LOCALE, CURRENCY_SYMBOL } from '../config/constants';
 
+const numberFormatter = new Intl.NumberFormat(CURRENCY_LOCALE, {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 /**
- * Format angka ke format mata uang Indonesia
+ * Format angka (Rupiah) ke format mata uang Indonesia
  * @example formatCurrency(1200000) → "Rp 1.200.000"
  * @example formatCurrency(50000, { compact: true }) → "Rp 50rb"
  */
@@ -18,21 +24,9 @@ export function formatCurrency(
   },
 ): string {
   const { compact = false, showSymbol = true, showSign = false } = options || {};
+  const value = Number.isFinite(amount) ? Math.round(amount) : 0;
 
-  // Amount disimpan dalam sen, convert ke rupiah
-  const value = amount / 100;
-
-  let formatted: string;
-
-  if (compact) {
-    formatted = formatCompact(value);
-  } else {
-    formatted = new Intl.NumberFormat(CURRENCY_LOCALE, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(Math.abs(value));
-  }
-
+  const formatted = compact ? formatCompact(value) : numberFormatter.format(Math.abs(value));
   const sign = showSign && value !== 0 ? (value > 0 ? '+' : '-') : value < 0 ? '-' : '';
   const symbol = showSymbol ? `${CURRENCY_SYMBOL} ` : '';
 
@@ -42,28 +36,36 @@ export function formatCurrency(
 /**
  * Format angka menjadi compact (50rb, 1,2jt, 3,5M)
  */
-function formatCompact(value: number): string {
+export function formatCompact(value: number): string {
   const absValue = Math.abs(value);
+  const trim = (n: number) => n.toFixed(1).replace(/\.0$/, '').replace('.', ',');
 
-  if (absValue >= 1_000_000_000) {
-    return `${(absValue / 1_000_000_000).toFixed(1).replace('.0', '')}M`;
-  }
-  if (absValue >= 1_000_000) {
-    return `${(absValue / 1_000_000).toFixed(1).replace('.0', '')}jt`;
-  }
-  if (absValue >= 1_000) {
-    return `${(absValue / 1_000).toFixed(1).replace('.0', '')}rb`;
-  }
+  if (absValue >= 1_000_000_000_000) return `${trim(absValue / 1_000_000_000_000)}T`;
+  if (absValue >= 1_000_000_000) return `${trim(absValue / 1_000_000_000)}M`;
+  if (absValue >= 1_000_000) return `${trim(absValue / 1_000_000)}jt`;
+  if (absValue >= 1_000) return `${trim(absValue / 1_000)}rb`;
   return absValue.toString();
 }
 
 /**
- * Parse string input ke angka (dalam sen)
- * @example parseCurrencyInput("1.200.000") → 120000000
+ * Parse string input ke angka Rupiah
+ * @example parseCurrencyInput("1.200.000") → 1200000
  */
 export function parseCurrencyInput(input: string): number {
   const cleaned = input.replace(/[^\d]/g, '');
-  return parseInt(cleaned, 10) * 100 || 0;
+  const parsed = parseInt(cleaned, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/**
+ * Format input teks Rupiah dengan pemisah ribuan saat user mengetik
+ * @example formatRupiahInput("6000000") → "6.000.000"
+ */
+export function formatRupiahInput(val: string | number): string {
+  if (val === null || val === undefined) return '';
+  const cleanNum = val.toString().replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  if (!cleanNum) return '';
+  return numberFormatter.format(parseInt(cleanNum.slice(0, 15), 10));
 }
 
 /**
@@ -72,10 +74,7 @@ export function parseCurrencyInput(input: string): number {
  */
 export function formatNumpadDisplay(amount: number): string {
   if (amount === 0) return '0';
-  return new Intl.NumberFormat(CURRENCY_LOCALE, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return numberFormatter.format(amount);
 }
 
 /**
