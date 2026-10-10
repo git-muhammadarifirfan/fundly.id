@@ -353,3 +353,145 @@
   border-radius: var(--radius-xl);
   border: 1px dashed var(--color-border);
 }
+
+/* ---- Production additions ---- */
+.filterModalScroll {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+.txTransfer { color: var(--color-info); }
+
+.txItem:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.summaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.summaryChip {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.summaryIncome { color: var(--color-success); }
+.summaryExpense { color: var(--color-text-primary); }
+
+.summaryReset {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 0;
+}
+
+.detailHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detailTitle {
+  font-size: 16px;
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.detailSub {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.detailAmountBox {
+  padding: 12px;
+  background: var(--color-bg-input);
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabelInline {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.detailAmount {
+  font-size: 18px;
+  font-weight: var(--font-bold);
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.detailCell {
+  padding: 10px 12px;
+  background: var(--color-bg-input);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detailLabel {
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.detailValue {
+  font-size: 13px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.detailBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  color: var(--color-dark);
+  background: var(--color-primary-subtle);
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+.detailActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+  padding-top: var(--space-4);
+}
+
+.detailDeleteBtn {
+  color: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+}
