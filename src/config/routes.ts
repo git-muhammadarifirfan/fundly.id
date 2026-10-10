@@ -6,6 +6,10 @@ export const ROUTES = {
   // Public routes
   LOGIN: '/login',
   REGISTER: '/register',
+  RESET_PASSWORD_REQUEST: '/reset-password-request',
+  RESET_PASSWORD_CONFIRM: '/reset-password-confirm',
+  PRIVACY: '/privacy',
+  TERMS: '/terms',
 
   // Protected routes
   DASHBOARD: '/',
@@ -15,8 +19,11 @@ export const ROUTES = {
   BUDGET: '/budget',
   REPORTS: '/reports',
   GOALS: '/goals',
+  ACCOUNTS: '/accounts',
   SETTINGS: '/settings',
 } as const;
+
+export const editTransactionPath = (id: string) => `/transactions/${id}/edit`;
 
 // Navigation items for sidebar & mobile nav
 export const NAV_ITEMS = [
@@ -44,6 +51,11 @@ export const NAV_ITEMS = [
     label: 'Target',
     path: ROUTES.GOALS,
     icon: 'target',
+  },
+  {
+    label: 'Akun & Dompet',
+    path: ROUTES.ACCOUNTS,
+    icon: 'landmark',
   },
 ] as const;
 

@@ -6,6 +6,11 @@ export const APP_NAME = 'Fundly';
 export const APP_DESCRIPTION = 'Aplikasi Pencatatan Keuangan Pribadi';
 export const APP_VERSION = '1.0.0';
 
+// Informasi publik untuk halaman legal (Kebijakan Privasi & Syarat Layanan)
+export const APP_URL = ((import.meta.env.VITE_APP_URL as string | undefined) || 'https://fundly.id').replace(/\/$/, '');
+export const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined) || 'support@fundly.id';
+export const LEGAL_LAST_UPDATED = '11 Oktober 2026';
+
 // Currency
 export const DEFAULT_CURRENCY = 'IDR';
 export const CURRENCY_SYMBOL = 'Rp';
