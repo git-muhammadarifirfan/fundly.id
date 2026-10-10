@@ -1,13 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
-  <rect width="100" height="100" rx="28" fill="#C6E83B" />
-  <text 
-    x="50%" 
-    y="54%" 
-    dominant-baseline="central" 
-    text-anchor="middle" 
-    fill="#1C1C1E" 
-    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
-    font-weight="900" 
-    font-size="64"
-  >F</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Fundly</title>
+  <rect width="512" height="512" rx="116" fill="#C6E83B"/>
+  <g fill="none" stroke="#1C1C1E" stroke-width="72" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M182 372V142h148"/>
+    <path d="M182 254h96"/>
+  </g>
+  <circle cx="352" cy="254" r="28" fill="#1C1C1E"/>
 </svg>

@@ -447,3 +447,7 @@
   font-weight: 700;
   text-decoration: underline;
 }
+
+svg.logoSymbol {
+  display: block;
+}

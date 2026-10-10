@@ -9,6 +9,7 @@ import { ROUTES } from '../../config/routes';
 import { LEGAL_LAST_UPDATED } from '../../config/constants';
 import { useAuthStore } from '../../stores/authStore';
 import styles from './LegalLayout.module.css';
+import { LogoMark } from '../../components/ui/Logo/LogoMark';
 
 export interface LegalSection {
   id: string;
@@ -41,7 +42,9 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ badge, title, document
       <div className={styles.container}>
         <div className={styles.topBar}>
           <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.LOGIN} className={styles.brand}>
-            <span className={styles.brandLogo}>F</span>
+            <span className={styles.brandLogo}>
+              <LogoMark size={22} />
+            </span>
             <span className={styles.brandName}>Fundly.id</span>
           </Link>
           <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.LOGIN} className={styles.backLink}>

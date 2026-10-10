@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button/Button';
 import { ROUTES } from '../../config/routes';
 import { isValidEmail, useAuthStore, validatePassword } from '../../stores/authStore';
 import styles from './AuthPage.module.css';
+import { LogoMark } from '../../components/ui/Logo/LogoMark';
 
 function passwordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -87,7 +88,7 @@ export const RegisterPage: React.FC = () => {
         <div className={styles.formSide}>
           <div className={styles.brandHeader}>
             <div className={styles.brandLogoCircle}>
-              <span className={styles.logoSymbol}>F</span>
+              <LogoMark size={22} className={styles.logoSymbol} />
             </div>
             <span className={styles.brandName}>Fundly.id</span>
           </div>

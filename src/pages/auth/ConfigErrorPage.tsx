@@ -1,6 +1,7 @@
 import React from 'react';
 import { ServerCrash } from 'lucide-react';
 import styles from './AuthPage.module.css';
+import { LogoMark } from '../../components/ui/Logo/LogoMark';
 
 /** Ditampilkan jika kredensial Supabase belum diisi di file .env */
 export const ConfigErrorPage: React.FC = () => (
@@ -9,7 +10,7 @@ export const ConfigErrorPage: React.FC = () => (
       <div className={styles.formSide}>
         <div className={styles.brandHeader}>
           <div className={styles.brandLogoCircle}>
-            <span className={styles.logoSymbol}>F</span>
+            <LogoMark size={22} className={styles.logoSymbol} />
           </div>
           <span className={styles.brandName}>Fundly.id</span>
         </div>

@@ -8,6 +8,7 @@ import { ROUTES } from '../../config/routes';
 import { useAuthStore, validatePassword } from '../../stores/authStore';
 import { readAuthUrlError } from './authHelpers';
 import styles from './AuthPage.module.css';
+import { LogoMark } from '../../components/ui/Logo/LogoMark';
 
 export const ResetPasswordConfirmPage: React.FC = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ export const ResetPasswordConfirmPage: React.FC = () => {
         <div className={styles.formSide}>
           <div className={styles.brandHeader}>
             <div className={styles.brandLogoCircle}>
-              <span className={styles.logoSymbol}>F</span>
+              <LogoMark size={22} className={styles.logoSymbol} />
             </div>
             <span className={styles.brandName}>Fundly.id</span>
           </div>

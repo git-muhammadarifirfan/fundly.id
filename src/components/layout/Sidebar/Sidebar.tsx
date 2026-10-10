@@ -16,6 +16,7 @@ import { APP_NAME } from '../../../config/constants';
 import { useFinanceStore } from '../../../stores/financeStore';
 import { cn } from '../../../utils/cn';
 import styles from './Sidebar.module.css';
+import { LogoMark } from '../../ui/Logo/LogoMark';
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   'layout-dashboard': LayoutDashboard,
@@ -49,7 +50,7 @@ export const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className={styles.logo}>
         <div className={styles.logoIcon}>
-          <span className={styles.logoSymbol}>F</span>
+          <LogoMark size={22} className={styles.logoSymbol} />
         </div>
         <span className={styles.logoText}>{APP_NAME}</span>
       </div>

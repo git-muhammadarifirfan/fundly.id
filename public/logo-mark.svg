@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Fundly</title>
+  <g fill="none" stroke="#1C1C1E" stroke-width="72" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M182 372V142h148"/>
+    <path d="M182 254h96"/>
+  </g>
+  <circle cx="352" cy="254" r="28" fill="#1C1C1E"/>
+</svg>
