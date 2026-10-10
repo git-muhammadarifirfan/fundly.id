@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, openedFromRecoveryLink, setRememberSession, supabase, toFriendlyError } from '../lib/supabase';
 import { profileApi } from '../services/financeApi';
+import { clearFinanceCache } from '../lib/financeCache';
 import type { Profile } from '../types/models';
 
 export type { Profile } from '../types/models';
@@ -155,6 +156,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
         setTimeout(() => void loadProfile(session.user), 0);
       }
     } else {
+      // Logout (termasuk dari tab lain) → hapus cache data keuangan di perangkat ini
+      if (prevUserId) clearFinanceCache(prevUserId);
       set({ session: null, user: null, profile: null, isAuthenticated: false, isPasswordRecovery: false });
     }
   };
@@ -293,6 +296,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       } catch (err) {
         console.warn('[Fundly] Gagal logout dari server:', err);
       } finally {
+        clearFinanceCache();
         set({ user: null, session: null, profile: null, isAuthenticated: false, isPasswordRecovery: false });
       }
     },

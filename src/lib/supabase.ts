@@ -42,7 +42,7 @@ export function setRememberSession(remember: boolean) {
   }
 }
 
-function shouldRemember(): boolean {
+export function shouldRemember(): boolean {
   try {
     return localStorage.getItem(REMEMBER_KEY) !== '0';
   } catch {

@@ -35,6 +35,7 @@ import type {
 import { sortTransactions } from '../utils/finance';
 import { getTodayISO } from '../utils/formatDate';
 import { useAuthStore } from './authStore';
+import { readFinanceCache, writeFinanceCache } from '../lib/financeCache';
 
 type DataTable = 'accounts' | 'categories' | 'transactions' | 'budgets' | 'goals' | 'recurring_templates';
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -268,7 +269,14 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       if (get().userId === userId && (get().status === 'ready' || initPromise)) return initPromise ?? undefined;
       if (get().userId && get().userId !== userId) get().reset();
 
-      set({ userId, status: 'loading', error: null });
+      // Tampilkan data terakhir dari cache perangkat secara instan (jika ada),
+      // lalu sinkronkan diam-diam dengan server
+      const cached = readFinanceCache(userId);
+      if (cached) {
+        set({ userId, ...cached, status: 'ready', error: null, isRefreshing: true });
+      } else {
+        set({ userId, status: 'loading', error: null });
+      }
       bindLifecycle();
 
       initPromise = (async () => {
@@ -280,7 +288,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
           }
           await runRecurring();
           if (get().userId !== userId) return;
-          await get().reload();
+          await get().reload({ silent: Boolean(cached) });
           if (get().userId !== userId || get().status !== 'ready') return;
           subscribeRealtime(userId);
         } finally {
@@ -530,4 +538,32 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       });
     },
   };
+});
+
+// ---- Simpan snapshot data ke cache perangkat (debounce) ----
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+useFinanceStore.subscribe((state, prev) => {
+  if (!state.userId || state.status !== 'ready') return;
+  const changed =
+    state.accounts !== prev.accounts ||
+    state.categories !== prev.categories ||
+    state.transactions !== prev.transactions ||
+    state.budgets !== prev.budgets ||
+    state.goals !== prev.goals ||
+    state.recurring !== prev.recurring;
+  if (!changed) return;
+  if (persistTimer) clearTimeout(persistTimer);
+  const userId = state.userId;
+  persistTimer = setTimeout(() => {
+    const current = useFinanceStore.getState();
+    if (current.userId !== userId || current.status !== 'ready') return;
+    writeFinanceCache(userId, {
+      accounts: current.accounts,
+      categories: current.categories,
+      transactions: current.transactions,
+      budgets: current.budgets,
+      goals: current.goals,
+      recurring: current.recurring,
+    });
+  }, 800);
 });
