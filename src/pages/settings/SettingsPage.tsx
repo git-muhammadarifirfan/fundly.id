@@ -1109,9 +1109,9 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
           <div className={styles.cardHeader}>
             <Vibrate size={20} className={styles.cardHeaderIcon} />
             <div>
-              <h3>Suara & Getar Keypad</h3>
+              <h3>Getar Keypad</h3>
               <p className={styles.passwordDescText}>
-                Klik & getar saat mengetik nominal. Suara otomatis senyap saat HP dalam mode senyap.
+                Getar halus setiap kali mengetik nominal di numpad.
               </p>
             </div>
           </div>
@@ -1119,7 +1119,7 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
             type="button"
             role="switch"
             aria-checked={keypadFeedbackOn}
-            aria-label="Suara & getar keypad"
+            aria-label="Getar keypad"
             className={`${styles.switch} ${keypadFeedbackOn ? styles.switchOn : ''}`}
             onClick={() => {
               const next = !keypadFeedbackOn;

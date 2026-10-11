@@ -44,7 +44,7 @@ export const NumPad: React.FC<NumPadProps> = ({
     (key: string) => {
       const isDelete = key === 'delete';
 
-      // Suara klik + getar (ikut mode senyap iPhone, bisa dimatikan di Pengaturan)
+      // Getar halus (tanpa suara), bisa dimatikan di Pengaturan
       if (key !== '') keypadFeedback(isDelete ? 'delete' : 'key');
 
       if (isDelete) {
