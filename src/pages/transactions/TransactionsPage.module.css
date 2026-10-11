@@ -515,3 +515,32 @@
   color: var(--color-danger) !important;
   border-color: var(--color-danger) !important;
 }
+/* ---- Mobile: filter & detail tampil sebagai bottom sheet ---- */
+@media (max-width: 640px) {
+  .filterModalOverlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .filterModalCard {
+    max-width: 100%;
+    max-height: calc(100dvh - var(--safe-top, 0px) - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding: var(--space-5) var(--space-5) calc(var(--space-5) + var(--safe-bottom, 0px));
+    animation: none;
+  }
+
+  .filterModalHeader {
+    position: sticky;
+    top: calc(-1 * var(--space-5));
+    z-index: 1;
+    background: var(--color-bg-card);
+    padding-top: var(--space-2);
+  }
+
+  .modalOptionBtn {
+    min-height: 40px;
+  }
+}
