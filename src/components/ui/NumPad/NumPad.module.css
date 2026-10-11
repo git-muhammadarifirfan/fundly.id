@@ -90,3 +90,18 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+
+@media (max-height: 760px) {
+  .key {
+    min-height: 34px;
+  }
+
+  .numpad {
+    padding-bottom: var(--space-2);
+    margin-bottom: 0;
+  }
+
+  .keyLabel {
+    display: none;
+  }
+}

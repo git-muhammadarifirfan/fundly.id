@@ -54,11 +54,6 @@
     padding-left: calc(var(--space-4) + var(--safe-left));
     padding-bottom: calc(var(--mobile-nav-total) + var(--space-8));
   }
-
-  /* Halaman layar penuh (Tambah/Edit Transaksi) tanpa nav bawah */
-  .noNav .contentInner {
-    padding-bottom: calc(var(--space-4) + var(--safe-bottom));
-  }
 }
 
 /* Desktop Spacing */
