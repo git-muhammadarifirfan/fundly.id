@@ -32,6 +32,7 @@ import {
   FileSpreadsheet,
   Sheet,
   Wallet,
+  Vibrate,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
 import { Modal } from '../../components/ui/Modal/Modal';
@@ -48,6 +49,7 @@ import { formatDate, formatRelativeDate, getTodayISO } from '../../utils/formatD
 import { CATEGORY_ICON_OPTIONS, COLOR_OPTIONS, DynamicIcon, readableIconColor } from '../../utils/icons';
 import { categoryBreakdown, computeTotals } from '../../utils/finance';
 import { exportReport } from '../../utils/exportReport';
+import { isKeypadFeedbackEnabled, keypadFeedback, setKeypadFeedbackEnabled } from '../../utils/feedback';
 import { compressImage } from '../../utils/image';
 import { ROUTES } from '../../config/routes';
 import type { CategoryType } from '../../types/common';
@@ -56,12 +58,12 @@ import styles from './SettingsPage.module.css';
 
 type SettingsTab = 'profile' | 'password' | 'categories' | 'recurring' | 'data';
 
-const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
-  { id: 'profile', label: 'Profil Saya', icon: User },
-  { id: 'password', label: 'Keamanan', icon: Lock },
-  { id: 'categories', label: 'Kategori', icon: Tags },
-  { id: 'recurring', label: 'Transaksi Rutin', icon: Repeat },
-  { id: 'data', label: 'Data & Ekspor', icon: Database },
+const TABS: { id: SettingsTab; label: string; short: string; icon: React.ElementType }[] = [
+  { id: 'profile', label: 'Profil Saya', short: 'Profil', icon: User },
+  { id: 'password', label: 'Keamanan', short: 'Keamanan', icon: Lock },
+  { id: 'categories', label: 'Kategori', short: 'Kategori', icon: Tags },
+  { id: 'recurring', label: 'Transaksi Rutin', short: 'Rutin', icon: Repeat },
+  { id: 'data', label: 'Data & Ekspor', short: 'Data', icon: Database },
 ];
 
 const FREQUENCY_LABEL: Record<string, string> = {
@@ -482,7 +484,7 @@ export const SettingsPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
               >
                 <Icon size={18} />
-                <span>{tab.label}</span>
+                <span>{isMobile ? tab.short : tab.label}</span>
               </button>
             );
           })}
@@ -1005,6 +1007,7 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
   const categoriesById = useCategoryMap();
   const accountsById = useAccountMap();
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | null>(null);
+  const [keypadFeedbackOn, setKeypadFeedbackOn] = useState(isKeypadFeedbackEnabled);
 
   const handleExportAll = async (format: 'csv' | 'xlsx') => {
     if (transactions.length === 0) {
@@ -1098,6 +1101,35 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
           <Button variant="outline" size="md" icon={<Sheet size={16} />} loading={exporting === 'csv'} onClick={() => void handleExportAll('csv')}>
             CSV
           </Button>
+        </div>
+      </div>
+
+      <div className={styles.cardBox}>
+        <div className={styles.toggleRow}>
+          <div className={styles.cardHeader}>
+            <Vibrate size={20} className={styles.cardHeaderIcon} />
+            <div>
+              <h3>Suara & Getar Keypad</h3>
+              <p className={styles.passwordDescText}>
+                Klik & getar saat mengetik nominal. Suara otomatis senyap saat HP dalam mode senyap.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={keypadFeedbackOn}
+            aria-label="Suara & getar keypad"
+            className={`${styles.switch} ${keypadFeedbackOn ? styles.switchOn : ''}`}
+            onClick={() => {
+              const next = !keypadFeedbackOn;
+              setKeypadFeedbackEnabled(next);
+              setKeypadFeedbackOn(next);
+              if (next) keypadFeedback('key');
+            }}
+          >
+            <span className={styles.switchKnob} />
+          </button>
         </div>
       </div>
 

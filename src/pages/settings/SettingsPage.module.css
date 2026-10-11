@@ -68,9 +68,12 @@
 @media (max-width: 868px) {
   .settingsNav {
     position: static;
-    padding: var(--space-3);
-    border-radius: var(--radius-xl);
-    gap: var(--space-3);
+    padding: var(--space-2);
+    border-radius: var(--radius-full);
+    gap: 0;
+    border: none;
+    box-shadow: none;
+    background: var(--color-bg-input);
   }
 
   .navHeader {
@@ -80,14 +83,38 @@
   .navGroup {
     flex-direction: row;
     width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: var(--space-1);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .navGroup::-webkit-scrollbar {
+    display: none;
   }
 
   .navItem {
-    flex: 1;
+    flex: 0 0 auto;
+    white-space: nowrap;
     justify-content: center;
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-xs);
-    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font-size: 11px;
+    border-radius: var(--radius-full);
+    gap: 6px;
+    font-weight: var(--font-bold);
+    color: var(--color-text-tertiary);
+    transition: all var(--transition-fast);
+  }
+
+  .navItem svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .navItemActive {
+    background: var(--color-bg-card);
+    color: var(--color-dark);
+    box-shadow: var(--shadow-sm);
   }
 
   .navFooter {
@@ -638,28 +665,13 @@
   .settingsContent {
     height: auto;
     max-width: none;
-    gap: var(--space-4);
+    gap: var(--space-3);
   }
 
   .profileSection {
     height: auto;
-    gap: var(--space-4) !important;
+    gap: var(--space-3) !important;
     justify-content: flex-start;
-  }
-
-  .navGroup {
-    overflow-x: auto;
-    scrollbar-width: none;
-    gap: var(--space-1);
-  }
-
-  .navGroup::-webkit-scrollbar {
-    display: none;
-  }
-
-  .navItem {
-    flex: 0 0 auto;
-    white-space: nowrap;
   }
 }
 
@@ -865,4 +877,61 @@
 .mobileCopyright a {
   color: var(--color-text-secondary);
   font-weight: var(--font-semibold);
+}
+
+/* ---- Bar tab mobile tetap terlihat saat scroll ---- */
+@media (max-width: 868px) {
+  .settingsNav {
+    position: sticky;
+    top: calc(var(--safe-top, 0px) + 8px);
+    z-index: 5;
+  }
+
+  .navItem {
+    min-height: 38px;
+  }
+}
+
+/* ---- Sakelar (switch) ---- */
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.toggleRow .cardHeader {
+  align-items: flex-start;
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.switchOn {
+  background: var(--color-primary);
+}
+
+.switchKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+}
+
+.switchOn .switchKnob {
+  transform: translateX(20px);
 }
