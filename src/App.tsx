@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
 import { useFinanceStore } from './stores/financeStore';
 import { isSupabaseConfigured } from './lib/supabase';
+import { useIsMobile } from './hooks/useMediaQuery';
 
 // Layout
 import { AppLayout } from './components/layout/AppLayout/AppLayout';
@@ -127,6 +128,7 @@ const FinanceSync: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const isMobile = useIsMobile();
   useEffect(() => {
     useAuthStore.getState().initAuth();
   }, []);
@@ -134,8 +136,10 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       {/* Toast Notifications */}
+      {/* Di HP: tengah atas, di bawah status bar/notch; di desktop: kanan atas */}
       <Toaster
-        position="top-right"
+        position={isMobile ? 'top-center' : 'top-right'}
+        containerStyle={isMobile ? { top: 'calc(env(safe-area-inset-top, 0px) + 12px)', left: 16, right: 16 } : undefined}
         toastOptions={{
           duration: 3000,
           style: {
@@ -145,6 +149,7 @@ const App: React.FC = () => {
             fontSize: 'var(--text-xs)',
             fontWeight: 600,
             padding: '10px 16px',
+            maxWidth: isMobile ? '100%' : 380,
             border: '1px solid var(--color-border)',
             boxShadow: 'var(--shadow-md)',
             letterSpacing: '-0.01em',
