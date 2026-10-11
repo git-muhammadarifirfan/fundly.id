@@ -10,7 +10,7 @@ import { Bell, AlertTriangle, CalendarClock, Target, CheckCircle2 } from 'lucide
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { useFinanceStore } from '../../../stores/financeStore';
 import { useAuthStore } from '../../../stores/authStore';
-import { useCategoryMap } from '../../../hooks/useFinance';
+import { useCategoryMap, useLiveGoals } from '../../../hooks/useFinance';
 import { budgetHealth, goalProjection, spentForBudget } from '../../../utils/finance';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { ROUTES } from '../../../config/routes';
@@ -46,7 +46,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ buttonClassN
   const budgets = useFinanceStore((s) => s.budgets);
   const transactions = useFinanceStore((s) => s.transactions);
   const recurring = useFinanceStore((s) => s.recurring);
-  const goals = useFinanceStore((s) => s.goals);
+  const goals = useLiveGoals();
   const categoriesById = useCategoryMap();
 
   const [isOpen, setIsOpen] = useState(false);

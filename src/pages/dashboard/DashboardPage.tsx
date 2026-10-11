@@ -13,7 +13,7 @@ import { Skeleton } from '../../components/ui/Skeleton/Skeleton';
 import { DataError } from '../../components/ui/DataError/DataError';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useCountUp } from '../../hooks/useAnimations';
-import { useAccountMap, useCategoryMap, useFinanceStatus } from '../../hooks/useFinance';
+import { useAccountMap, useCategoryMap, useFinanceStatus, useLiveGoals } from '../../hooks/useFinance';
 import { useFinanceStore } from '../../stores/financeStore';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDateShort } from '../../utils/formatDate';
@@ -68,7 +68,7 @@ export const DashboardPage: React.FC = () => {
 
   const accounts = useFinanceStore((s) => s.accounts);
   const transactions = useFinanceStore((s) => s.transactions);
-  const goals = useFinanceStore((s) => s.goals);
+  const goals = useLiveGoals();
   const categoriesById = useCategoryMap();
   const accountsById = useAccountMap();
 

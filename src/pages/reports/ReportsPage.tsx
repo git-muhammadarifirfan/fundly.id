@@ -44,7 +44,7 @@ import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { Skeleton } from '../../components/ui/Skeleton/Skeleton';
 import { DataError } from '../../components/ui/DataError/DataError';
 import { useIsMobile } from '../../hooks/useMediaQuery';
-import { useAccountMap, useCategoryMap, useFinanceStatus } from '../../hooks/useFinance';
+import { useAccountMap, useCategoryMap, useFinanceStatus, useLiveGoals } from '../../hooks/useFinance';
 import { useFinanceStore } from '../../stores/financeStore';
 import { useAuthStore } from '../../stores/authStore';
 import { formatCompact, formatCurrency } from '../../utils/formatCurrency';
@@ -134,7 +134,7 @@ export const ReportsPage: React.FC = () => {
   const transactions = useFinanceStore((s) => s.transactions);
   const accounts = useFinanceStore((s) => s.accounts);
   const budgets = useFinanceStore((s) => s.budgets);
-  const goals = useFinanceStore((s) => s.goals);
+  const goals = useLiveGoals();
   const profile = useAuthStore((s) => s.profile);
   const categoriesById = useCategoryMap();
   const accountsById = useAccountMap();
@@ -251,7 +251,8 @@ export const ReportsPage: React.FC = () => {
   );
 
   const netWorth = totalBalance(accounts);
-  const totalGoalsSaved = goals.reduce((s, g) => s + g.current_amount, 0);
+  // Dana target = total saldo akun (satu kali, bukan dijumlahkan per target)
+  const totalGoalsSaved = goals.length > 0 ? Math.max(0, netWorth) : 0;
   const totalGoalsTarget = goals.reduce((s, g) => s + g.target_amount, 0);
 
   const handleTabClick = (tabId: string, e: React.MouseEvent<HTMLButtonElement>) => {
@@ -695,7 +696,7 @@ export const ReportsPage: React.FC = () => {
                   'Dibanding periode sebelumnya',
                 )}
                 {kpi(
-                  'Dana di Target Tabungan',
+                  'Dana Tersedia untuk Target',
                   <Target size={16} />,
                   styles.kpiIconSavings,
                   <AnimatedNumber value={totalGoalsSaved} className={styles.kpiVal} />,

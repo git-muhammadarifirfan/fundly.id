@@ -345,3 +345,69 @@
     grid-template-columns: 1fr;
   }
 }
+/* ---- Dana tersedia (realtime) ---- */
+.poolHint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px dashed rgba(198, 232, 59, 0.8);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+  color: var(--color-dark);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.goalTitleCol {
+  min-width: 0;
+}
+
+.goalTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Mobile: ringkas & mudah disentuh ---- */
+@media (max-width: 640px) {
+  .container {
+    gap: var(--space-4);
+  }
+
+  .summaryCard {
+    padding: var(--space-4);
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+
+  .summaryRight,
+  .summaryRight > button {
+    width: 100%;
+  }
+
+  .summaryTitle {
+    font-size: var(--text-3xl);
+  }
+
+  .goalsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .goalCard {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .deleteGoalBtn {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
