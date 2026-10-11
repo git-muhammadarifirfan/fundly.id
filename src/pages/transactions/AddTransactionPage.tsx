@@ -32,6 +32,7 @@ import { formatNumpadDisplay, formatCurrency } from '../../utils/formatCurrency'
 import { formatDateShort, formatDate, getCurrentTime, getTodayISO, toISODate } from '../../utils/formatDate';
 import { DynamicIcon } from '../../utils/icons';
 import { cn } from '../../utils/cn';
+import { keypadFeedback } from '../../utils/feedback';
 import { ROUTES } from '../../config/routes';
 import { useFinanceStore } from '../../stores/financeStore';
 import { useFinanceStatus } from '../../hooks/useFinance';
@@ -263,6 +264,7 @@ export const AddTransactionPage: React.FC = () => {
             : `${label} ${formatCurrency(inputNumeric)} berhasil disimpan`,
         );
       }
+      keypadFeedback('success');
       goBack();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Gagal menyimpan transaksi.');

@@ -1,10 +1,12 @@
 // ============================================
 // Fundly.id - NumPad Component (Mobile)
+// Haptic feedback + satisfying key click sound
 // ============================================
 
 import React, { useCallback } from 'react';
 import { Delete } from 'lucide-react';
 import { cn } from '../../../utils/cn';
+import { keypadFeedback } from '../../../utils/feedback';
 import styles from './NumPad.module.css';
 
 interface NumPadProps {
@@ -40,7 +42,12 @@ export const NumPad: React.FC<NumPadProps> = ({
 }) => {
   const handleKeyPress = useCallback(
     (key: string) => {
-      if (key === 'delete') {
+      const isDelete = key === 'delete';
+
+      // Suara klik + getar (ikut mode senyap iPhone, bisa dimatikan di Pengaturan)
+      if (key !== '') keypadFeedback(isDelete ? 'delete' : 'key');
+
+      if (isDelete) {
         onChange(value.slice(0, -1));
       } else if (key === '') {
         return;
