@@ -36,7 +36,8 @@ import { cn } from '../../utils/cn';
 import { MONTHS } from '../../config/constants';
 import { ROUTES } from '../../config/routes';
 import { useFinanceStore } from '../../stores/financeStore';
-import { useCategoryMap, useCategoriesByType, useFinanceStatus } from '../../hooks/useFinance';
+import { useCategoryMap, useCategoriesByType, useFinanceStatus, useLiveGoals, useSavingsPool } from '../../hooks/useFinance';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 import type { Budget, Goal } from '../../types/models';
 import styles from './BudgetPage.module.css';
 
@@ -50,7 +51,11 @@ export const BudgetPage: React.FC = () => {
   const { isLoading, isError, error, reload } = useFinanceStatus();
   const allBudgets = useFinanceStore((s) => s.budgets);
   const transactions = useFinanceStore((s) => s.transactions);
-  const goals = useFinanceStore((s) => s.goals);
+  const goals = useLiveGoals();
+  const savingsPool = useSavingsPool();
+  const isMobile = useIsMobile();
+  // Di HP tampilkan satu bagian sekaligus agar ringkas
+  const [mobileSection, setMobileSection] = useState<'budget' | 'goals'>('budget');
   const saveBudget = useFinanceStore((s) => s.saveBudget);
   const deleteBudget = useFinanceStore((s) => s.deleteBudget);
   const copyBudgets = useFinanceStore((s) => s.copyBudgets);
@@ -79,7 +84,6 @@ export const BudgetPage: React.FC = () => {
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [formGoalName, setFormGoalName] = useState('');
   const [formGoalTarget, setFormGoalTarget] = useState('');
-  const [formGoalCurrent, setFormGoalCurrent] = useState('');
   const [formGoalMonth, setFormGoalMonth] = useState('11');
   const [formGoalYear, setFormGoalYear] = useState(String(now.getFullYear() + 1));
 
@@ -184,7 +188,6 @@ export const BudgetPage: React.FC = () => {
     setEditingGoalId(null);
     setFormGoalName('');
     setFormGoalTarget('');
-    setFormGoalCurrent('');
     setFormGoalMonth('11');
     setFormGoalYear(String(now.getFullYear() + 1));
     setActiveModal('addGoal');
@@ -194,7 +197,6 @@ export const BudgetPage: React.FC = () => {
     setEditingGoalId(item.id);
     setFormGoalName(item.name);
     setFormGoalTarget(formatRupiahInput(item.target_amount));
-    setFormGoalCurrent(item.current_amount ? formatRupiahInput(item.current_amount) : '');
     if (item.deadline) {
       setFormGoalMonth(String(Number(item.deadline.slice(5, 7)) - 1));
       setFormGoalYear(item.deadline.slice(0, 4));
@@ -251,7 +253,6 @@ export const BudgetPage: React.FC = () => {
   const handleSaveGoal = async (e: React.FormEvent) => {
     e.preventDefault();
     const targetNum = parseCurrencyInput(formGoalTarget);
-    const currentNum = parseCurrencyInput(formGoalCurrent);
     const name = formGoalName.trim();
 
     if (!name) {
@@ -270,14 +271,14 @@ export const BudgetPage: React.FC = () => {
         await addGoal({
           name,
           target_amount: targetNum,
-          current_amount: currentNum,
+          current_amount: 0,
           deadline,
           icon: 'target',
           color: COLOR_OPTIONS[goals.length % COLOR_OPTIONS.length],
         });
         toast.success(`Berhasil membuat target ${name}`);
       } else if (editingGoalId) {
-        await updateGoal(editingGoalId, { name, target_amount: targetNum, current_amount: currentNum, deadline });
+        await updateGoal(editingGoalId, { name, target_amount: targetNum, deadline });
         toast.success(`Berhasil memperbarui target ${name}`);
       }
       setActiveModal(null);
@@ -333,18 +334,44 @@ export const BudgetPage: React.FC = () => {
       {/* Top Header */}
       <div className={styles.headerRow}>
         <div>
-          <h1 className={styles.pageTitle}>Anggaran & Target Finansial</h1>
-          <p className={styles.pageSubtitle}>Kelola batas alokasi pengeluaran & impian tabungan Anda</p>
+          <h1 className={styles.pageTitle}>{isMobile ? 'Anggaran & Target' : 'Anggaran & Target Finansial'}</h1>
+          {!isMobile && <p className={styles.pageSubtitle}>Kelola batas alokasi pengeluaran & impian tabungan Anda</p>}
         </div>
-        <div className={styles.headerActions}>
-          <Button variant="outline" size="md" icon={<Target size={16} />} onClick={openAddGoalModal}>
-            Tambah Target
-          </Button>
-          <Button variant="primary" size="md" icon={<Plus size={16} />} onClick={openAddBudgetModal}>
-            Tambah Anggaran
-          </Button>
-        </div>
+        {!isMobile && (
+          <div className={styles.headerActions}>
+            <Button variant="outline" size="md" icon={<Target size={16} />} onClick={openAddGoalModal}>
+              Tambah Target
+            </Button>
+            <Button variant="primary" size="md" icon={<Plus size={16} />} onClick={openAddBudgetModal}>
+              Tambah Anggaran
+            </Button>
+          </div>
+        )}
       </div>
+
+      {isMobile && (
+        <div className={styles.mobileTabs} role="tablist">
+          <button
+            role="tab"
+            aria-selected={mobileSection === 'budget'}
+            className={cn(styles.mobileTab, mobileSection === 'budget' && styles.mobileTabActive)}
+            onClick={() => setMobileSection('budget')}
+          >
+            <Wallet size={16} /> Anggaran{budgets.length ? ` (${budgets.length})` : ''}
+          </button>
+          <button
+            role="tab"
+            aria-selected={mobileSection === 'goals'}
+            className={cn(styles.mobileTab, mobileSection === 'goals' && styles.mobileTabActive)}
+            onClick={() => setMobileSection('goals')}
+          >
+            <Target size={16} /> Target{goals.length ? ` (${goals.length})` : ''}
+          </button>
+        </div>
+      )}
+
+      {(!isMobile || mobileSection === 'budget') && (
+        <>
 
       {/* Hero Overview Card */}
       <div className={styles.heroCard}>
@@ -353,7 +380,7 @@ export const BudgetPage: React.FC = () => {
             <div className={styles.heroBadgeIcon}>
               <PieChart size={15} />
             </div>
-            <span>Overview Alokasi Anggaran</span>
+            <span>{isMobile ? 'Ringkasan Bulan' : 'Overview Alokasi Anggaran'}</span>
           </div>
           <div className={styles.monthNav}>
             <button className={styles.monthNavBtn} onClick={() => shiftPeriod(-1)} aria-label="Bulan sebelumnya">
@@ -402,8 +429,13 @@ export const BudgetPage: React.FC = () => {
       <div className={styles.sectionTitleRow}>
         <div className={styles.sectionHeaderTitle}>
           <Wallet size={20} style={{ color: 'var(--color-primary)' }} />
-          <h2>Alokasi Anggaran Bulanan</h2>
-          <span className={styles.periodPill}>Per Bulan</span>
+          <h2>{isMobile ? 'Per Kategori' : 'Alokasi Anggaran Bulanan'}</h2>
+          {!isMobile && <span className={styles.periodPill}>Per Bulan</span>}
+          {isMobile && (
+            <button className={styles.sectionAddBtn} onClick={openAddBudgetModal} aria-label="Tambah anggaran">
+              <Plus size={16} /> Tambah
+            </button>
+          )}
         </div>
         <div className={styles.filterTabs}>
           <button className={cn(styles.filterTab, filter === 'all' && styles.filterActive)} onClick={() => setFilter('all')}>
@@ -534,18 +566,35 @@ export const BudgetPage: React.FC = () => {
         </div>
       )}
 
-      {/* SECTION 2: TARGET FINANSIAL (GOALS) */}
-      <div className={styles.sectionTitleRow} style={{ marginTop: 'var(--space-6)' }}>
-        <div className={styles.sectionHeaderTitle}>
-          <Target size={20} style={{ color: 'var(--color-primary)' }} />
-          <h2>Target Tabungan & Impian (Goals)</h2>
-        </div>
-        {goals.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.GOALS)}>
-            Kelola Dana Target <ChevronRight size={14} />
-          </Button>
-        )}
-      </div>
+        </>
+      )}
+
+      {(!isMobile || mobileSection === 'goals') && (
+        <>
+          {/* SECTION 2: TARGET FINANSIAL (GOALS) */}
+          <div className={styles.sectionTitleRow} style={isMobile ? undefined : { marginTop: 'var(--space-6)' }}>
+            <div className={styles.sectionHeaderTitle}>
+              <Target size={20} style={{ color: 'var(--color-primary)' }} />
+              <h2>{isMobile ? 'Target Tabungan' : 'Target Tabungan & Impian (Goals)'}</h2>
+              {isMobile && (
+                <button className={styles.sectionAddBtn} onClick={openAddGoalModal} aria-label="Tambah target">
+                  <Plus size={16} /> Tambah
+                </button>
+              )}
+            </div>
+            {goals.length > 0 && !isMobile && (
+              <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.GOALS)}>
+                Lihat Detail Target <ChevronRight size={14} />
+              </Button>
+            )}
+          </div>
+
+          <button type="button" className={styles.poolBanner} onClick={() => navigate(ROUTES.GOALS)}>
+            <span className={styles.poolBannerLabel}>
+              <Wallet size={15} /> Dana tersedia (total saldo, realtime)
+            </span>
+            <strong>{formatCurrency(savingsPool)}</strong>
+          </button>
 
       {isLoading ? (
         <div className={styles.goalsGrid}>
@@ -591,7 +640,7 @@ export const BudgetPage: React.FC = () => {
                 </p>
 
                 <div className={styles.goalAmountRow}>
-                  <AnimatedNumber value={goal.current_amount} className={styles.goalCurrentVal} />
+                  <AnimatedNumber value={Math.min(goal.current_amount, goal.target_amount)} className={styles.goalCurrentVal} />
                   <span className={styles.goalTargetVal}>/ {formatCurrency(goal.target_amount)}</span>
                 </div>
 
@@ -602,6 +651,9 @@ export const BudgetPage: React.FC = () => {
             );
           })}
         </div>
+      )}
+
+        </>
       )}
 
       {/* MODAL 1: ADD / EDIT BUDGET */}
@@ -708,16 +760,11 @@ export const BudgetPage: React.FC = () => {
                   />
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label>Jumlah Terkumpul Saat Ini (Rp)</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Contoh: 45.000.000"
-                    value={formGoalCurrent}
-                    onChange={(e) => setFormGoalCurrent(formatRupiahInput(e.target.value))}
-                    className={styles.formInput}
-                  />
+                <div className={styles.poolInfo}>
+                  <Wallet size={16} />
+                  <span>
+                    Jumlah terkumpul otomatis dari total saldo Tunai + Bank: <strong>{formatCurrency(savingsPool)}</strong>
+                  </span>
                 </div>
 
                 <div className={styles.formGroup}>
