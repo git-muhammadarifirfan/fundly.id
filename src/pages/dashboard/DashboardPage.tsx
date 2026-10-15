@@ -35,6 +35,7 @@ import { ROUTES, editTransactionPath } from '../../config/routes';
 import { MONTHS } from '../../config/constants';
 import { UserDropdown } from '../../components/layout/UserDropdown/UserDropdown';
 import { NotificationBell } from '../../components/layout/NotificationBell/NotificationBell';
+import { InsightsCard } from '../../components/ui/InsightsCard/InsightsCard';
 import type { Account, Category, Goal, Transaction } from '../../types/models';
 import styles from './DashboardPage.module.css';
 
@@ -270,6 +271,9 @@ const MobileDashboard: React.FC<{
           <span className={styles.accountColValue}>{data.isLoading ? '…' : formatCurrency(data.nonCashBalance)}</span>
         </div>
       </Card>
+
+      {/* Wawasan keuangan otomatis */}
+      {!data.isLoading && <InsightsCard limit={2} />}
 
       {/* Arus Kas Chart (Mobile) */}
       <Card padding="md" className={styles.weeklyCard}>
@@ -557,6 +561,9 @@ const DesktopDashboard: React.FC<{
           </Card>
         </div>
       </div>
+
+      {/* Wawasan keuangan otomatis */}
+      {!data.isLoading && <InsightsCard limit={3} />}
 
       {/* Row 2: Cash Flow Chart */}
       <Card padding="lg" data-animate>
