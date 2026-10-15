@@ -158,7 +158,10 @@ export const AddTransactionPage: React.FC = () => {
     if (isEdit) return;
     const active = accounts.filter((a) => a.is_active);
     if (active.length === 0) return;
-    if (!accountId || !active.some((a) => a.id === accountId)) setAccountId(active[0].id);
+    // Default: akun Bank (jika ada), selain itu akun aktif pertama
+    if (!accountId || !active.some((a) => a.id === accountId)) {
+      setAccountId((active.find((a) => a.type === 'bank') ?? active[0]).id);
+    }
   }, [accounts, accountId, isEdit]);
 
   useEffect(() => {
