@@ -343,13 +343,18 @@
 }
 
 .txIconIncome {
-  background: var(--color-success-light);
-  color: var(--color-success);
+  background: var(--color-income-light);
+  color: var(--color-income);
 }
 
 .txIconExpense {
-  background: var(--color-bg-input);
-  color: var(--color-text-secondary);
+  background: var(--color-expense-light);
+  color: var(--color-expense);
+}
+
+.txIconTransfer {
+  background: var(--color-transfer-light);
+  color: var(--color-transfer);
 }
 
 .txInfo {
@@ -380,8 +385,8 @@
   font-weight: var(--font-bold);
 }
 
-.txIncome { color: var(--color-success); }
-.txExpense { color: var(--color-text-primary); }
+.txIncome { color: var(--color-income); }
+.txExpense { color: var(--color-expense); }
 
 .txType {
   font-size: var(--text-xs);

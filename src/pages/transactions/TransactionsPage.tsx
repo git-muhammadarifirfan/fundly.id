@@ -179,7 +179,12 @@ export const TransactionsPage: React.FC = () => {
     if (!listRef.current) return;
     const items = listRef.current.querySelectorAll(`.${styles.txItem}`);
     if (items.length === 0) return;
-    gsap.fromTo(items, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.03, ease: 'power2.out', clearProps: 'all' });
+    const firstItems = Array.from(items).slice(0, 20);
+    gsap.fromTo(
+      firstItems,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 0.45, stagger: 0.025, ease: 'power3.out', clearProps: 'opacity,transform' },
+    );
   }, [animKey]);
 
   const applyPreset = (preset: DatePreset) => {
@@ -545,7 +550,9 @@ export const TransactionsPage: React.FC = () => {
                   <div className={styles.groupHeader}>
                     <span className={styles.groupDate}>{group.date ? getDateGroupLabel(group.date) : 'Nominal Terbesar'}</span>
                     {group.date && (
-                      <span className={styles.groupTotal}>
+                      <span
+                        className={cn(styles.groupTotal, net > 0 && styles.groupTotalPositive, net < 0 && styles.groupTotalNegative)}
+                      >
                         {net > 0 ? '+' : ''}
                         {formatCurrency(net)}
                       </span>
@@ -614,10 +621,10 @@ export const TransactionsPage: React.FC = () => {
                     style={{
                       color:
                         selectedTx.type === 'income'
-                          ? 'var(--color-success)'
+                          ? 'var(--color-income)'
                           : selectedTx.type === 'transfer'
-                            ? 'var(--color-info)'
-                            : 'var(--color-text-primary)',
+                            ? 'var(--color-transfer)'
+                            : 'var(--color-expense)',
                     }}
                   >
                     {selectedTx.type === 'income' ? '+' : selectedTx.type === 'expense' ? '-' : ''}

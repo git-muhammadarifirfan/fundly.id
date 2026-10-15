@@ -350,11 +350,11 @@
 }
 
 .txIncome {
-  color: var(--color-success);
+  color: var(--color-income);
 }
 
 .txExpense {
-  color: var(--color-text-primary);
+  color: var(--color-expense);
 }
 
 .emptyState {
@@ -374,7 +374,7 @@
 }
 
 .txTransfer {
-  color: var(--color-info);
+  color: var(--color-transfer);
 }
 
 .txItem:focus-visible {
@@ -400,11 +400,15 @@
 }
 
 .summaryIncome {
-  color: var(--color-success);
+  color: var(--color-income);
+  border-color: var(--color-income-light);
+  background: var(--color-income-light);
 }
 
 .summaryExpense {
-  color: var(--color-text-primary);
+  color: var(--color-expense);
+  border-color: var(--color-expense-light);
+  background: var(--color-expense-light);
 }
 
 .summaryReset {
@@ -543,4 +547,13 @@
   .modalOptionBtn {
     min-height: 40px;
   }
+}
+
+/* Total harian: hijau jika surplus, merah jika defisit */
+.groupTotalPositive {
+  color: var(--color-income);
+}
+
+.groupTotalNegative {
+  color: var(--color-expense);
 }

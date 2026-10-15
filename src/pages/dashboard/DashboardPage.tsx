@@ -317,7 +317,10 @@ const MobileDashboard: React.FC<{
                 >
                   <div className={styles.txLeft}>
                     <div
-                      className={cn(styles.txIconWrapper, tx.type === 'income' ? styles.txIconIncome : styles.txIconExpense)}
+                      className={cn(
+                        styles.txIconWrapper,
+                        tx.type === 'income' ? styles.txIconIncome : tx.type === 'transfer' ? styles.txIconTransfer : styles.txIconExpense,
+                      )}
                     >
                       <DynamicIcon name={info.icon} size={20} />
                     </div>
@@ -329,7 +332,7 @@ const MobileDashboard: React.FC<{
                   <div className={styles.txRight}>
                     <span
                       className={cn(styles.txAmountLarge, tx.type === 'income' ? styles.txIncome : styles.txExpense)}
-                      style={tx.type === 'transfer' ? { color: 'var(--color-info)' } : undefined}
+                      style={tx.type === 'transfer' ? { color: 'var(--color-transfer)' } : undefined}
                     >
                       {amountSign(tx)}
                       {formatCurrency(tx.amount)}
@@ -623,7 +626,7 @@ const DesktopDashboard: React.FC<{
                       <td className={styles.txDateCol}>{formatDateShort(tx.transaction_date)}</td>
                       <td
                         className={cn(tx.type === 'income' ? styles.txIncome : styles.txExpense)}
-                        style={tx.type === 'transfer' ? { color: 'var(--color-info)' } : undefined}
+                        style={tx.type === 'transfer' ? { color: 'var(--color-transfer)' } : undefined}
                       >
                         {amountSign(tx)} {formatCurrency(tx.amount)}
                       </td>

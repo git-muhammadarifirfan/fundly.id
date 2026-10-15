@@ -50,6 +50,14 @@
   --color-info: #5AC8FA;
   --color-info-light: #E8F6FF;
 
+  /* ---- Warna jenis transaksi (konsisten di semua halaman) ---- */
+  --color-income: #1FA34A;       /* uang masuk: hijau */
+  --color-income-light: #E6F7EC;
+  --color-expense: #E5352B;      /* uang keluar: merah */
+  --color-expense-light: #FDECEB;
+  --color-transfer: #0A84FF;     /* pindah dana: biru */
+  --color-transfer-light: #E6F2FF;
+
   /* ---- Border & Divider ---- */
   --color-border: #E5E5EA;
   --color-border-focus: #C6E83B;
