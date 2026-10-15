@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { LayoutDashboard, ArrowLeftRight, Plus, BarChart3, Wallet } from 'lucide-react';
 import { ROUTES } from '../../../config/routes';
 import { cn } from '../../../utils/cn';
@@ -39,14 +38,9 @@ export const MobileNav: React.FC = () => {
     <nav className={styles.mobileNav}>
       <div className={styles.navContainer}>
         {/* Gelembung aktif: digeser dengan transform (GPU) selebar satu slot, bukan properti "left" */}
-        <motion.div
-          className={styles.bubbleTrack}
-          initial={false}
-          animate={{ x: `${currentIndex * 100}%` }}
-          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-        >
+        <div className={styles.bubbleTrack} style={{ transform: `translateX(${currentIndex * 100}%)` }}>
           <div className={styles.activeBubble} />
-        </motion.div>
+        </div>
 
         {/* Nav Items */}
         {NAV_ITEMS.map((item, index) => {
@@ -61,19 +55,13 @@ export const MobileNav: React.FC = () => {
               aria-label={item.label}
               style={{ pointerEvents: 'auto' }}
             >
-              <motion.div
-                className={styles.iconContainer}
-                initial={false}
-                animate={isActive ? { y: -24 } : { y: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                style={{ pointerEvents: 'none' }}
-              >
+              <div className={cn(styles.iconContainer, isActive && styles.iconActive)} style={{ pointerEvents: 'none' }}>
                 {isActive ? (
                   <Icon size={26} strokeWidth={2.5} color="#000000" />
                 ) : (
                   <Icon size={24} strokeWidth={2} color="#FFFFFF" />
                 )}
-              </motion.div>
+              </div>
             </NavLink>
           );
         })}
