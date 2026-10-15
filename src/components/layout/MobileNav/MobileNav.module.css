@@ -46,8 +46,8 @@
   pointer-events: none;
   z-index: 2;
   will-change: transform;
-  /* Animasi geser dengan sedikit efek pegas, murni CSS (GPU) - ringan untuk HP RAM kecil */
-  transition: transform 380ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  /* Animasi geser halus (ease-out), murni CSS (GPU) - ringan untuk HP RAM kecil */
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1); /* ease-out halus tanpa pantulan */
 }
 
 /* Lime Green Solid Circle (NO GLOW, FLAT BUBBLE) */
@@ -88,7 +88,7 @@
 }
 
 .iconContainer {
-  transition: transform 340ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .iconActive {
