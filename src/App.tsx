@@ -5,10 +5,12 @@
 import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { MotionConfig } from 'framer-motion';
 import { useAuthStore } from './stores/authStore';
 import { useFinanceStore } from './stores/financeStore';
 import { isSupabaseConfigured } from './lib/supabase';
 import { useIsMobile } from './hooks/useMediaQuery';
+import { usePerfStore, isLiteMode } from './stores/perfStore';
 
 // Layout
 import { AppLayout } from './components/layout/AppLayout/AppLayout';
@@ -84,7 +86,8 @@ const PublicAuthRoute: React.FC = () => {
 /** Prefetch halaman lain saat browser idle, kecuali koneksi lambat / mode hemat data. */
 function prefetchPagesWhenIdle(): () => void {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-  if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return () => undefined;
+  // HP spesifikasi rendah / Mode Ringan: jangan muat halaman lain di latar belakang (hemat RAM & CPU)
+  if (isLiteMode() || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return () => undefined;
 
   const loaders = Object.values(pageLoaders);
   const schedule =
@@ -129,6 +132,7 @@ const FinanceSync: React.FC = () => {
 
 const App: React.FC = () => {
   const isMobile = useIsMobile();
+  const lite = usePerfStore((s) => s.lite);
   useEffect(() => {
     useAuthStore.getState().initAuth();
   }, []);
@@ -184,6 +188,8 @@ const App: React.FC = () => {
 
       {isSupabaseConfigured && <FinanceSync />}
 
+      {/* Mode Ringan: matikan animasi framer-motion; selain itu ikuti pengaturan "kurangi gerakan" OS */}
+      <MotionConfig reducedMotion={lite ? 'always' : 'user'}>
       <Suspense fallback={<PageLoader />}>
         {!isSupabaseConfigured ? (
           <ConfigErrorPage />
@@ -223,6 +229,7 @@ const App: React.FC = () => {
           </Routes>
         )}
       </Suspense>
+      </MotionConfig>
     </BrowserRouter>
   );
 };

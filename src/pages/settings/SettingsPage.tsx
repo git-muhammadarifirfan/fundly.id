@@ -33,6 +33,7 @@ import {
   Sheet,
   Wallet,
   Vibrate,
+  Gauge,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
 import { Modal } from '../../components/ui/Modal/Modal';
@@ -41,6 +42,7 @@ import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { Field, IconPicker, ColorPicker, ItemPreview, Segmented, formStyles } from '../../components/ui/Form/Form';
 import { isValidEmail, useAuthStore, validatePassword } from '../../stores/authStore';
 import { useFinanceStore } from '../../stores/financeStore';
+import { usePerfStore, type LiteModePreference } from '../../stores/perfStore';
 import { useAccountMap, useCategoryMap } from '../../hooks/useFinance';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { profileApi } from '../../services/financeApi';
@@ -1008,6 +1010,9 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
   const accountsById = useAccountMap();
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | null>(null);
   const [keypadFeedbackOn, setKeypadFeedbackOn] = useState(isKeypadFeedbackEnabled);
+  const perfPreference = usePerfStore((s) => s.preference);
+  const setPerfPreference = usePerfStore((s) => s.setPreference);
+  const lowEndDetected = usePerfStore((s) => s.lowEndDetected);
 
   const handleExportAll = async (format: 'csv' | 'xlsx') => {
     if (transactions.length === 0) {
@@ -1131,6 +1136,28 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
             <span className={styles.switchKnob} />
           </button>
         </div>
+      </div>
+
+      <div className={styles.cardBox}>
+        <div className={styles.cardHeader}>
+          <Gauge size={20} className={styles.cardHeaderIcon} />
+          <h3>Mode Ringan</h3>
+        </div>
+        <p className={styles.passwordDescText}>
+          Untuk HP spesifikasi rendah (mis. RAM 2GB): animasi dipersingkat dan halaman tidak dimuat di latar belakang agar
+          aplikasi tetap lancar.{' '}
+          {perfPreference === 'auto' &&
+            (lowEndDetected ? 'Perangkat ini terdeteksi spesifikasi rendah, Mode Ringan aktif otomatis.' : 'Saat ini tidak aktif di perangkat ini.')}
+        </p>
+        <Segmented<LiteModePreference>
+          options={[
+            { value: 'auto', label: 'Otomatis' },
+            { value: 'on', label: 'Nyala' },
+            { value: 'off', label: 'Mati' },
+          ]}
+          value={perfPreference}
+          onChange={setPerfPreference}
+        />
       </div>
 
       <div className={styles.cardBox}>

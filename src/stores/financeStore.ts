@@ -36,6 +36,7 @@ import { sortTransactions } from '../utils/finance';
 import { getTodayISO } from '../utils/formatDate';
 import { useAuthStore } from './authStore';
 import { readFinanceCache, writeFinanceCache } from '../lib/financeCache';
+import { isLiteMode } from './perfStore';
 
 type DataTable = 'accounts' | 'categories' | 'transactions' | 'budgets' | 'goals' | 'recurring_templates';
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -565,5 +566,5 @@ useFinanceStore.subscribe((state, prev) => {
       goals: current.goals,
       recurring: current.recurring,
     });
-  }, 800);
+  }, isLiteMode() ? 2500 : 800); // HP lemah: serialisasi data lebih jarang
 });
