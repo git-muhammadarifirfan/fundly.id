@@ -557,3 +557,34 @@
 .groupTotalNegative {
   color: var(--color-expense);
 }
+
+/* ---- Toggle tampilan Daftar | Kalender ---- */
+.viewToggle {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+}
+
+.viewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+}
+
+.viewBtnActive {
+  background: var(--color-primary);
+  color: var(--color-dark);
+}

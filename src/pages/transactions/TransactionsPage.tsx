@@ -16,10 +16,10 @@ import {
   Pencil,
   Trash2,
   Repeat,
-  Wallet,
-} from 'lucide-react';
+  Wallet, List, CalendarDays } from 'lucide-react';
 import { endOfMonth, startOfMonth, subDays } from 'date-fns';
 import { Card } from '../../components/ui/Card/Card';
+import { TransactionCalendar } from './TransactionCalendar';
 import { Button } from '../../components/ui/Button/Button';
 import { ROUTES, editTransactionPath } from '../../config/routes';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -75,6 +75,7 @@ export const TransactionsPage: React.FC = () => {
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_STEP);
+  const [view, setView] = useState<'list' | 'calendar'>('list');
 
   // Bersihkan query string setelah dibaca agar URL tetap rapi
   useEffect(() => {
@@ -508,11 +509,42 @@ export const TransactionsPage: React.FC = () => {
               Reset filter
             </button>
           )}
+          <div className={styles.viewToggle} role="tablist" aria-label="Tampilan transaksi">
+            <button
+              role="tab"
+              aria-selected={view === 'list'}
+              className={cn(styles.viewBtn, view === 'list' && styles.viewBtnActive)}
+              onClick={() => setView('list')}
+            >
+              <List size={14} /> Daftar
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === 'calendar'}
+              className={cn(styles.viewBtn, view === 'calendar' && styles.viewBtnActive)}
+              onClick={() => setView('calendar')}
+            >
+              <CalendarDays size={14} /> Kalender
+            </button>
+          </div>
         </div>
       )}
 
+      {/* Kalender transaksi: ketuk tanggal untuk menyaring daftar */}
+      {view === 'calendar' && !isLoading && !isError && transactions.length > 0 && (
+        <TransactionCalendar
+          transactions={transactions}
+          onSelectDay={(iso) => {
+            setDatePreset('custom');
+            setStartDate(iso);
+            setEndDate(iso);
+            setView('list');
+          }}
+        />
+      )}
+
       {/* Transaction Groups List */}
-      <div className={styles.groups} ref={listRef}>
+      <div className={styles.groups} ref={listRef} style={view === 'calendar' && transactions.length > 0 ? { display: 'none' } : undefined}>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '12px 0' }}>
             {[0, 1, 2, 3, 4].map((i) => (
