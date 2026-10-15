@@ -5,34 +5,29 @@
 .numpad {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-2) calc(var(--space-4) + 10px);
+  gap: 8px;
+  padding: 10px 12px 12px;
+  margin-top: auto; /* menempel di bawah konten, tidak pernah dipadatkan */
   background: var(--color-bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   user-select: none;
   -webkit-user-select: none;
-  /* Numpad mengisi sisa tinggi layar: tombol lebih besar di HP tinggi, tetap muat di HP kecil */
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 340px;
-  margin-bottom: var(--space-2);
+  flex-shrink: 0;
 }
 
 .row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-1);
-  flex: 1 1 0;
-  min-height: 0;
+  gap: 8px;
 }
 
 .key {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  min-height: 40px;
-  border-radius: var(--radius-md);
+  /* Ukuran tombol nyaman: 44-56px mengikuti tinggi layar, tidak pernah dipadatkan */
+  height: clamp(44px, 6dvh, 56px);
+  border-radius: var(--radius-lg);
   background: var(--color-bg-card);
   border: 1px solid var(--color-divider);
   cursor: pointer;
@@ -91,14 +86,15 @@
   text-transform: uppercase;
 }
 
-@media (max-height: 760px) {
-  .key {
-    min-height: 34px;
+/* Layar pendek: tombol tetap lega (min 42px), huruf kecil di bawah angka disembunyikan */
+@media (max-height: 700px) {
+  .numpad,
+  .row {
+    gap: 6px;
   }
 
-  .numpad {
-    padding-bottom: var(--space-2);
-    margin-bottom: 0;
+  .key {
+    height: 42px;
   }
 
   .keyLabel {
