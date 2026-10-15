@@ -935,3 +935,87 @@
 .switchOn .switchKnob {
   transform: translateX(20px);
 }
+
+/* ============================================
+   Bar tab Pengaturan di HP: SATU BARIS horizontal.
+   Diletakkan di akhir file agar tidak tertimpa aturan desktop di atas.
+   ============================================ */
+@media (max-width: 868px) {
+  /* Kunci lebar ke layar: bar tab di-scroll di dalam dirinya, bukan seluruh halaman */
+  .settingsLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settingsContent {
+    min-width: 0;
+  }
+
+  .settingsNav {
+    position: sticky;
+    top: calc(var(--safe-top, 0px) + 8px);
+    z-index: 5;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    flex-direction: row;
+    gap: 0;
+    padding: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg-card);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .navHeader,
+  .navFooter {
+    display: none;
+  }
+
+  .navGroup {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .navGroup::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navItem {
+    flex: 1 0 auto;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .navItem svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+
+  .navItemActive {
+    background: var(--color-primary);
+    color: var(--color-dark);
+    box-shadow: none;
+  }
+}
+
+/* HP (≤ 440px, termasuk Pro Max): kelima tab muat dalam satu baris tanpa digeser */
+@media (max-width: 440px) {
+  .navItem {
+    padding: 8px 10px;
+  }
+
+  .navItem svg {
+    display: none;
+  }
+}
