@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Coins,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button/Button';
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber/AnimatedNumber';
@@ -39,6 +40,7 @@ import { useFinanceStore } from '../../stores/financeStore';
 import { useCategoryMap, useCategoriesByType, useFinanceStatus, useLiveGoals, useSavingsPool } from '../../hooks/useFinance';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import type { Budget, Goal } from '../../types/models';
+import { GoldPage } from '../gold/GoldPage';
 import styles from './BudgetPage.module.css';
 
 type BudgetFilter = 'all' | 'warning' | 'safe';
@@ -55,7 +57,7 @@ export const BudgetPage: React.FC = () => {
   const savingsPool = useSavingsPool();
   const isMobile = useIsMobile();
   // Di HP tampilkan satu bagian sekaligus agar ringkas
-  const [mobileSection, setMobileSection] = useState<'budget' | 'goals'>('budget');
+  const [mobileSection, setMobileSection] = useState<'budget' | 'goals' | 'gold'>('budget');
   const saveBudget = useFinanceStore((s) => s.saveBudget);
   const deleteBudget = useFinanceStore((s) => s.deleteBudget);
   const copyBudgets = useFinanceStore((s) => s.copyBudgets);
@@ -367,6 +369,14 @@ export const BudgetPage: React.FC = () => {
           >
             <Target size={16} /> Target{goals.length ? ` (${goals.length})` : ''}
           </button>
+          <button
+            role="tab"
+            aria-selected={mobileSection === 'gold'}
+            className={cn(styles.mobileTab, mobileSection === 'gold' && styles.mobileTabActive)}
+            onClick={() => setMobileSection('gold')}
+          >
+            <Coins size={16} /> Emas
+          </button>
         </div>
       )}
 
@@ -655,6 +665,8 @@ export const BudgetPage: React.FC = () => {
 
         </>
       )}
+
+      {isMobile && mobileSection === 'gold' && <GoldPage embedded />}
 
       {/* MODAL 1: ADD / EDIT BUDGET */}
       <AnimatePresence>

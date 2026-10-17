@@ -168,3 +168,27 @@ export interface RecurringInput {
   transaction_time: string;
   note?: string | null;
 }
+
+// ---- Tabungan Emas ----
+export type GoldBrand = 'antam' | 'ubs' | 'galeri24' | 'digital' | 'lainnya';
+
+export interface GoldHolding {
+  id: string;
+  user_id: string;
+  brand: GoldBrand;
+  grams: number;
+  /** Total harga beli (Rupiah) */
+  purchase_price: number;
+  purchase_date: string;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GoldHoldingInput {
+  brand: GoldBrand;
+  grams: number;
+  purchase_price: number;
+  purchase_date: string;
+  note?: string | null;
+}

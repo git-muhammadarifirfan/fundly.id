@@ -19,6 +19,7 @@ export const ROUTES = {
   BUDGET: '/budget',
   REPORTS: '/reports',
   GOALS: '/goals',
+  GOLD: '/gold',
   ACCOUNTS: '/accounts',
   SETTINGS: '/settings',
 } as const;
@@ -51,6 +52,11 @@ export const NAV_ITEMS = [
     label: 'Target',
     path: ROUTES.GOALS,
     icon: 'target',
+  },
+  {
+    label: 'Tabungan Emas',
+    path: ROUTES.GOLD,
+    icon: 'coins',
   },
   {
     label: 'Akun & Dompet',

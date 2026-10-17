@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   ArrowLeftRight,
   BarChart3,
+  Coins,
   Landmark,
   LayoutDashboard,
   RefreshCw,
@@ -24,6 +25,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   wallet: Wallet,
   'bar-chart-3': BarChart3,
   target: Target,
+  coins: Coins,
   landmark: Landmark,
   settings: Settings,
 };

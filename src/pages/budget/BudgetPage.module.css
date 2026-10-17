@@ -1090,3 +1090,22 @@ button.monthPill {
     gap: 0;
   }
 }
+
+/* Tab mobile: Anggaran | Target | Emas */
+.mobileTabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mobileTab {
+  gap: 4px;
+  padding: 0 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+@media (max-width: 360px) {
+  .mobileTab svg {
+    display: none;
+  }
+}

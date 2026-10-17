@@ -1,9 +1,29 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
+
+// Saat `npm run dev`, layani /api/gold-price memakai fungsi yang sama dengan Vercel Function
+const devApi = (): Plugin => ({
+  name: 'fundly-dev-api',
+  apply: 'serve',
+  configureServer(server) {
+    server.middlewares.use('/api/gold-price', async (_req, res) => {
+      try {
+        const mod = (await server.ssrLoadModule('/api/gold-price.ts')) as { GET: () => Promise<Response> }
+        const response = await mod.GET()
+        res.statusCode = response.status
+        res.setHeader('Content-Type', 'application/json; charset=utf-8')
+        res.end(await response.text())
+      } catch (err) {
+        res.statusCode = 500
+        res.end(JSON.stringify({ error: String(err) }))
+      }
+    })
+  },
+})
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), devApi()],
   // NEXT_PUBLIC_ ikut diekspos agar env dari integrasi Supabase di Vercel
   // (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY) langsung terbaca.
   // Variabel rahasia integrasi (SUPABASE_SERVICE_ROLE_KEY, POSTGRES_*) tidak berawalan ini sehingga tetap tidak terekspos.

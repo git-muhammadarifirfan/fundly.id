@@ -17,6 +17,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle?: string }> = {
   '/reports': { title: 'Laporan', subtitle: 'Analisis keuangan Anda' },
   '/accounts': { title: 'Akun & Dompet', subtitle: 'Kelola dompet & rekening' },
   '/goals': { title: 'Target', subtitle: 'Target tabungan Anda' },
+  '/gold': { title: 'Tabungan Emas', subtitle: 'Nilai emas Anda sesuai harga hari ini' },
   '/settings': { title: 'Pengaturan', subtitle: 'Konfigurasi aplikasi' },
 };
 

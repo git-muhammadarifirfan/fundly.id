@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import { MotionConfig } from 'framer-motion';
 import { useAuthStore } from './stores/authStore';
 import { useFinanceStore } from './stores/financeStore';
+import { useGoldStore } from './stores/goldStore';
 import { isSupabaseConfigured } from './lib/supabase';
 import { useIsMobile } from './hooks/useMediaQuery';
 import { usePerfStore, isLiteMode } from './stores/perfStore';
@@ -27,6 +28,7 @@ const pageLoaders = {
   addTransaction: () => import('./pages/transactions/AddTransactionPage'),
   budget: () => import('./pages/budget/BudgetPage'),
   goals: () => import('./pages/goals/GoalsPage'),
+  gold: () => import('./pages/gold/GoldPage'),
   accounts: () => import('./pages/accounts/AccountsPage'),
   settings: () => import('./pages/settings/SettingsPage'),
   reports: () => import('./pages/reports/ReportsPage'),
@@ -38,6 +40,7 @@ const AddTransactionPage = lazy(() => pageLoaders.addTransaction().then((m) => (
 const BudgetPage = lazy(() => pageLoaders.budget().then((m) => ({ default: m.BudgetPage })));
 const ReportsPage = lazy(() => pageLoaders.reports().then((m) => ({ default: m.ReportsPage })));
 const GoalsPage = lazy(() => pageLoaders.goals().then((m) => ({ default: m.GoalsPage })));
+const GoldPage = lazy(() => pageLoaders.gold().then((m) => ({ default: m.GoldPage })));
 const AccountsPage = lazy(() => pageLoaders.accounts().then((m) => ({ default: m.AccountsPage })));
 const SettingsPage = lazy(() => pageLoaders.settings().then((m) => ({ default: m.SettingsPage })));
 
@@ -124,6 +127,7 @@ const FinanceSync: React.FC = () => {
       void useFinanceStore.getState().init(userId);
     } else {
       useFinanceStore.getState().reset();
+      useGoldStore.getState().reset();
     }
   }, [userId]);
 
@@ -219,6 +223,7 @@ const App: React.FC = () => {
                 <Route path={ROUTES.BUDGET} element={<BudgetPage />} />
                 <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
                 <Route path={ROUTES.GOALS} element={<GoalsPage />} />
+                <Route path={ROUTES.GOLD} element={<GoldPage />} />
                 <Route path={ROUTES.ACCOUNTS} element={<AccountsPage />} />
                 <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
               </Route>
