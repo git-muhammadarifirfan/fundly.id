@@ -882,3 +882,146 @@ button.desktopPill:hover {
 .desktopAccountPills {
   flex-wrap: wrap;
 }
+
+/* ============================================
+   Mobile: Pengeluaran per Kategori
+   Judul > tab periode > donut di tengah > legenda satu kolom (nama tidak terpotong)
+   ============================================ */
+.mCatCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mCatHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.mCatTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.mCatToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-input);
+}
+
+.mCatToggleBtn {
+  border: none;
+  background: transparent;
+  min-height: 34px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.mCatToggleActive {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.mCatEmpty {
+  margin: 0;
+  padding: var(--space-4) 0;
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.mCatBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.mCatDonutWrap {
+  position: relative;
+  width: 168px;
+  height: 168px;
+}
+
+.mCatCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.mCatTotal {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  max-width: 108px;
+  text-align: center;
+}
+
+.mCatTotalLabel {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+}
+
+.mCatLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mCatRow {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  font-size: var(--text-sm);
+  border-top: 1px solid var(--color-divider);
+}
+
+.mCatRow:first-child {
+  border-top: none;
+}
+
+.mCatName {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mCatAmount {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.mCatPct {
+  text-align: right;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}

@@ -181,6 +181,123 @@ function useBarAnimation(chartRef: React.RefObject<HTMLDivElement | null>, key: 
   }, [chartRef, key, enabled]);
 }
 
+/** Lingkaran donut pengeluaran per kategori (dipakai mobile & desktop) */
+const CategoryDonut: React.FC<{ categories: CategoryBreakdownItem[]; className?: string }> = ({ categories, className }) => {
+  const total = Math.max(1, categories.reduce((s, c) => s + c.amount, 0));
+  const circumference = 2 * Math.PI * 45;
+  // Panjang & posisi awal tiap segmen dihitung di muka (tanpa variabel yang diubah saat render)
+  const segments = categories.map((cat, i) => {
+    const before = categories.slice(0, i).reduce((s, c) => s + c.amount, 0);
+    return { cat, dash: (cat.amount / total) * circumference, offset: (before / total) * circumference };
+  });
+  return (
+    <svg viewBox="0 0 120 120" className={cn(styles.donut, className)}>
+      {segments.map(({ cat, dash, offset }) => (
+        <circle
+          key={cat.id}
+          cx="60"
+          cy="60"
+          r="45"
+          fill="none"
+          stroke={cat.color || '#C6E83B'}
+          strokeWidth="14"
+          strokeDasharray={`${dash} ${circumference - dash}`}
+          strokeDashoffset={-offset}
+          className={styles.donutSegment}
+        >
+          <title>
+            {cat.name}: {formatCurrency(cat.amount)}
+          </title>
+        </circle>
+      ))}
+    </svg>
+  );
+};
+
+/** Kartu pengeluaran per kategori versi mobile: donut ringkas + legenda satu kolom */
+const MobileCategoryCard: React.FC<{ data: DashboardData }> = ({ data }) => {
+  const transactions = useFinanceStore((s) => s.transactions);
+  const [period, setPeriod] = useState<'this' | 'last'>('this');
+
+  const categories = useMemo<CategoryBreakdownItem[]>(() => {
+    const now = new Date();
+    return categoryBreakdown(
+      transactions,
+      data.categoriesById,
+      'expense',
+      monthRange(now.getFullYear(), now.getMonth() + (period === 'this' ? 0 : -1)),
+    );
+  }, [transactions, data.categoriesById, period]);
+
+  // Maksimal 5 kategori teratas, sisanya digabung "Lainnya"
+  const legend = useMemo(() => {
+    if (categories.length <= 5) return categories;
+    const rest = categories.slice(4);
+    const amount = rest.reduce((s, c) => s + c.amount, 0);
+    const total = categories.reduce((s, c) => s + c.amount, 0) || 1;
+    return [
+      ...categories.slice(0, 4),
+      {
+        id: '__others',
+        name: `Lainnya (${rest.length})`,
+        icon: 'more-horizontal',
+        color: '#C7C7CC',
+        amount,
+        percentage: Math.round((amount / total) * 100),
+        count: rest.reduce((s, c) => s + c.count, 0),
+      },
+    ];
+  }, [categories]);
+
+  const total = categories.reduce((s, c) => s + c.amount, 0);
+
+  return (
+    <Card padding="md" className={styles.mCatCard}>
+      <div className={styles.mCatHeader}>
+        <h3 className={styles.mCatTitle}>Pengeluaran per Kategori</h3>
+        <div className={styles.mCatToggle} role="tablist" aria-label="Periode">
+          {(['this', 'last'] as const).map((p) => (
+            <button
+              key={p}
+              type="button"
+              role="tab"
+              aria-selected={period === p}
+              className={cn(styles.mCatToggleBtn, period === p && styles.mCatToggleActive)}
+              onClick={() => setPeriod(p)}
+            >
+              {p === 'this' ? 'Bulan Ini' : 'Bulan Lalu'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {categories.length === 0 ? (
+        <p className={styles.mCatEmpty}>Belum ada pengeluaran di {period === 'this' ? 'bulan ini' : 'bulan lalu'}.</p>
+      ) : (
+        <div className={styles.mCatBody}>
+          <div className={styles.mCatDonutWrap}>
+            <CategoryDonut categories={categories} />
+            <div className={styles.mCatCenter}>
+              <span className={styles.mCatTotal}>{formatCurrency(total, { compact: true })}</span>
+              <span className={styles.mCatTotalLabel}>Total</span>
+            </div>
+          </div>
+          <ul className={styles.mCatLegend}>
+            {legend.map((cat) => (
+              <li key={cat.id} className={styles.mCatRow}>
+                <span className={styles.legendDot} style={{ background: cat.color || '#C6E83B' }} />
+                <span className={styles.mCatName}>{cat.name}</span>
+                <span className={styles.mCatAmount}>{formatCurrency(cat.amount, { compact: true })}</span>
+                <span className={styles.mCatPct}>{cat.percentage}%</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Card>
+  );
+};
+
 // ============================================
 // Mobile Dashboard
 // ============================================
@@ -286,6 +403,9 @@ const MobileDashboard: React.FC<{
 
       {/* Wawasan keuangan otomatis */}
       {!data.isLoading && <InsightsCard limit={2} />}
+
+      {/* Pengeluaran per kategori */}
+      {!data.isLoading && <MobileCategoryCard data={data} />}
 
       {/* Recent Transactions */}
       <div className={styles.transactionSection}>
@@ -511,35 +631,7 @@ const DesktopDashboard: React.FC<{
             ) : (
               <>
                 <div className={styles.donutContainer}>
-                  <svg viewBox="0 0 120 120" className={styles.donut}>
-                    {(() => {
-                      let offset = 0;
-                      const circumference = 2 * Math.PI * 45;
-                      return categories.map((cat) => {
-                        const dash = (cat.amount / Math.max(1, categories.reduce((s, c) => s + c.amount, 0))) * circumference;
-                        const el = (
-                          <circle
-                            key={cat.id}
-                            cx="60"
-                            cy="60"
-                            r="45"
-                            fill="none"
-                            stroke={cat.color || '#C6E83B'}
-                            strokeWidth="14"
-                            strokeDasharray={`${dash} ${circumference - dash}`}
-                            strokeDashoffset={-offset}
-                            className={styles.donutSegment}
-                          >
-                            <title>
-                              {cat.name}: {formatCurrency(cat.amount)}
-                            </title>
-                          </circle>
-                        );
-                        offset += dash;
-                        return el;
-                      });
-                    })()}
-                  </svg>
+                  <CategoryDonut categories={categories} />
                   <div className={styles.donutCenter}>
                     <span className={styles.donutPercentage}>
                       {formatCurrency(categories.reduce((s, c) => s + c.amount, 0), { compact: true })}
