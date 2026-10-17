@@ -137,3 +137,20 @@
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
+
+.enablePush {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: calc(100% - 16px);
+  margin: 0 8px 8px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(198, 232, 59, 0.9);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+  color: var(--color-dark);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-align: left;
+  cursor: pointer;
+}

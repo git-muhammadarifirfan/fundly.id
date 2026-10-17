@@ -6,7 +6,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import {
+import { BellRing,
   User,
   Mail,
   Lock,
@@ -52,6 +52,15 @@ import { CATEGORY_ICON_OPTIONS, COLOR_OPTIONS, DynamicIcon, readableIconColor } 
 import { categoryBreakdown, computeTotals } from '../../utils/finance';
 import { exportReport } from '../../utils/exportReport';
 import { isKeypadFeedbackEnabled, keypadFeedback, setKeypadFeedbackEnabled } from '../../utils/feedback';
+import {
+  isIOS,
+  isStandalone,
+  notifyPermission,
+  phoneAlertsEnabled,
+  requestNotifyPermission,
+  setPhoneAlertsEnabled,
+  showPhoneNotification,
+} from '../../lib/phoneNotify';
 import { compressImage } from '../../utils/image';
 import { ROUTES } from '../../config/routes';
 import type { CategoryType } from '../../types/common';
@@ -1010,6 +1019,36 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
   const accountsById = useAccountMap();
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | null>(null);
   const [keypadFeedbackOn, setKeypadFeedbackOn] = useState(isKeypadFeedbackEnabled);
+  const [notifPermission, setNotifPermission] = useState(notifyPermission);
+  const [phoneAlertsOn, setPhoneAlertsOn] = useState(() => notifyPermission() === 'granted' && phoneAlertsEnabled());
+
+  const togglePhoneAlerts = async () => {
+    if (phoneAlertsOn) {
+      setPhoneAlertsEnabled(false);
+      setPhoneAlertsOn(false);
+      return;
+    }
+    const result = notifPermission === 'granted' ? 'granted' : await requestNotifyPermission();
+    setNotifPermission(result);
+    if (result === 'granted') {
+      setPhoneAlertsEnabled(true);
+      setPhoneAlertsOn(true);
+      void showPhoneNotification({
+        id: 'fundly-test',
+        title: 'Notifikasi Fundly aktif',
+        body: 'Kamu akan diberi tahu saat anggaran hampir habis atau terlampaui.',
+        url: '/budget',
+      });
+    } else if (result === 'denied') {
+      toast.error('Izin notifikasi diblokir. Aktifkan lewat pengaturan browser / aplikasi.');
+    } else if (result === 'unsupported') {
+      toast.error(
+        isIOS() && !isStandalone()
+          ? 'Di iPhone, tambahkan Fundly ke Layar Utama dulu (Bagikan > Tambah ke Layar Utama).'
+          : 'Browser ini belum mendukung notifikasi.',
+      );
+    }
+  };
   const perfPreference = usePerfStore((s) => s.preference);
   const setPerfPreference = usePerfStore((s) => s.setPreference);
   const lowEndDetected = usePerfStore((s) => s.lowEndDetected);
@@ -1132,6 +1171,33 @@ const DataSection: React.FC<{ isMobile: boolean; onLogout: () => void }> = ({ is
               setKeypadFeedbackOn(next);
               if (next) keypadFeedback('key');
             }}
+          >
+            <span className={styles.switchKnob} />
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.cardBox}>
+        <div className={styles.toggleRow}>
+          <div className={styles.cardHeader}>
+            <BellRing size={20} className={styles.cardHeaderIcon} />
+            <div>
+              <h3>Notifikasi HP</h3>
+              <p className={styles.passwordDescText}>
+                {notifPermission === 'denied'
+                  ? 'Izin notifikasi diblokir. Buka pengaturan browser untuk mengizinkan Fundly.'
+                  : 'Pemberitahuan saat anggaran hampir habis / terlampaui, tagihan rutin jatuh tempo, dan tenggat target.'}
+                {isIOS() && !isStandalone() && ' Di iPhone, tambahkan Fundly ke Layar Utama agar notifikasi bisa muncul.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={phoneAlertsOn}
+            aria-label="Notifikasi HP"
+            className={`${styles.switch} ${phoneAlertsOn ? styles.switchOn : ''}`}
+            onClick={() => void togglePhoneAlerts()}
           >
             <span className={styles.switchKnob} />
           </button>
