@@ -233,7 +233,8 @@ export const GoldPage: React.FC<{ embedded?: boolean }> = ({ embedded = false })
           </div>
         )}
         <p className={styles.priceSource}>
-          {price?.antamUpdatedLabel ? `Update Antam ${price.antamUpdatedLabel} WIB · ` : ''}
+          {price?.antamUpdatedLabel ? `Harga Antam ${price.antamUpdatedLabel.split(' pukul')[0]} · ` : ''}
+          {price ? `dicek ${new Date(price.fetchedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} · ` : ''}
           Sumber{' '}
           <a href={price?.sourceUrl || 'https://harga-emas.org/'} target="_blank" rel="noopener noreferrer">
             {price?.source === 'spot' ? 'gold-api.com (spot)' : 'harga-emas.org'}
