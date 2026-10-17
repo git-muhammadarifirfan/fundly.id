@@ -256,7 +256,7 @@ const MobileDashboard: React.FC<{
         <div className={styles.accountColItem}>
           <div className={styles.accountColHeader}>
             <Wallet size={16} className={styles.accountIcon} />
-            <span className={styles.accountColTitle}>Tunai (Cash)</span>
+            <span className={styles.accountColTitle}>Tunai</span>
           </div>
           <span className={styles.accountColValue}>{data.isLoading ? '…' : formatCurrency(data.cashBalance)}</span>
         </div>
@@ -272,9 +272,6 @@ const MobileDashboard: React.FC<{
         </div>
       </Card>
 
-      {/* Wawasan keuangan otomatis */}
-      {!data.isLoading && <InsightsCard limit={2} />}
-
       {/* Arus Kas Chart (Mobile) */}
       <Card padding="md" className={styles.weeklyCard}>
         <div className={styles.sectionHeader} style={{ marginBottom: 'var(--space-2)' }}>
@@ -286,6 +283,9 @@ const MobileDashboard: React.FC<{
         </div>
         <CashflowBars data={cashflowData} chartRef={chartRef} height="160px" />
       </Card>
+
+      {/* Wawasan keuangan otomatis */}
+      {!data.isLoading && <InsightsCard limit={2} />}
 
       {/* Recent Transactions */}
       <div className={styles.transactionSection}>
@@ -562,9 +562,6 @@ const DesktopDashboard: React.FC<{
         </div>
       </div>
 
-      {/* Wawasan keuangan otomatis */}
-      {!data.isLoading && <InsightsCard limit={3} />}
-
       {/* Row 2: Cash Flow Chart */}
       <Card padding="lg" data-animate>
         <CardHeader
@@ -581,6 +578,9 @@ const DesktopDashboard: React.FC<{
         />
         {data.isLoading ? <Skeleton height="220px" borderRadius="16px" /> : <CashflowBars data={cashflowData} chartRef={cashflowRef} />}
       </Card>
+
+      {/* Wawasan keuangan otomatis */}
+      {!data.isLoading && <InsightsCard limit={3} />}
 
       {/* Row 3: Recent Transactions + Savings */}
       <div className={styles.bottomRow}>
