@@ -380,7 +380,7 @@ export const BudgetPage: React.FC = () => {
             <div className={styles.heroBadgeIcon}>
               <PieChart size={15} />
             </div>
-            <span>{isMobile ? 'Ringkasan Bulan' : 'Overview Alokasi Anggaran'}</span>
+            <span>{isMobile ? 'Ringkasan' : 'Overview Alokasi Anggaran'}</span>
           </div>
           <div className={styles.monthNav}>
             <button className={styles.monthNavBtn} onClick={() => shiftPeriod(-1)} aria-label="Bulan sebelumnya">

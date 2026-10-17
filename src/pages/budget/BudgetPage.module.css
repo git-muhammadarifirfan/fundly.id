@@ -1012,3 +1012,81 @@ button.monthPill {
     text-align: center;
   }
 }
+
+/* ============================================
+   Ringkasan bulan: tinggi kartu stabil saat ganti bulan
+   (nama bulan panjang/pendek tidak membuat header/angka turun baris)
+   ============================================ */
+.heroHeader {
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.heroBadge {
+  min-width: 0;
+}
+
+.heroBadge > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monthNav {
+  flex-shrink: 0;
+}
+
+button.monthPill {
+  min-width: 118px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.heroMainStat {
+  min-width: 0;
+}
+
+.heroAmountRow {
+  flex-wrap: nowrap;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.heroLimit {
+  white-space: nowrap;
+}
+
+.heroGaugePill {
+  flex-shrink: 0;
+  min-width: 76px;
+}
+
+@media (max-width: 640px) {
+  .heroHeader {
+    flex-wrap: nowrap;
+  }
+
+  button.monthPill {
+    min-width: 104px;
+    padding: 4px 8px;
+  }
+
+  .heroAmount {
+    font-size: clamp(18px, 6vw, var(--text-2xl));
+  }
+}
+
+@media (max-width: 480px) {
+  .heroHeader {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .heroAmountRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+}
