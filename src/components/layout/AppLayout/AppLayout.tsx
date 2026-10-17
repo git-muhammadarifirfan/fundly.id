@@ -7,6 +7,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../Sidebar/Sidebar';
 import { MobileNav } from '../MobileNav/MobileNav';
 import { Header } from '../Header/Header';
+import { OfflineBanner } from '../OfflineBanner/OfflineBanner';
 import { ScrollProgressBar } from '../../ui/ScrollProgressBar/ScrollProgressBar';
 import { PageSkeleton } from '../../ui/Skeleton/PageSkeleton';
 import { useIsDesktop } from '../../../hooks/useMediaQuery';
@@ -19,6 +20,7 @@ export const AppLayout: React.FC = () => {
     <div className={styles.appContainer}>
       {/* Progress bar scroll hanya di desktop (di HP mengganggu area status bar) */}
       {isDesktop && <ScrollProgressBar />}
+      <OfflineBanner />
 
       {/* Sidebar Navigation - Visible on Desktop */}
       {isDesktop && <Sidebar />}

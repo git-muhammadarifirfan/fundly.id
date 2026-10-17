@@ -37,6 +37,18 @@ import { getTodayISO } from '../utils/formatDate';
 import { useAuthStore } from './authStore';
 import { readFinanceCache, writeFinanceCache } from '../lib/financeCache';
 import { isLiteMode } from './perfStore';
+import toast from 'react-hot-toast';
+import {
+  adjustBalances,
+  buildLocalTransaction,
+  enqueue,
+  isNetworkError,
+  newId,
+  onQueueChange,
+  readQueue,
+  removeOp,
+  type QueuedOp,
+} from '../lib/offlineQueue';
 
 type DataTable = 'accounts' | 'categories' | 'transactions' | 'budgets' | 'goals' | 'recurring_templates';
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -49,6 +61,9 @@ interface FinanceState {
   isRefreshing: boolean;
   realtimeStatus: RealtimeStatus;
   lastSyncedAt: number | null;
+  /** Jumlah perubahan transaksi yang menunggu dikirim (dibuat saat offline) */
+  pendingCount: number;
+  isSyncing: boolean;
 
   accounts: Account[];
   categories: Category[];
@@ -61,6 +76,8 @@ interface FinanceState {
   reload: (options?: { silent?: boolean }) => Promise<void>;
   refreshTables: (tables: DataTable[]) => Promise<void>;
   reset: () => void;
+  /** Kirim antrian transaksi offline ke database (dipanggil otomatis saat online) */
+  syncPending: () => Promise<void>;
 
   // Transactions
   addTransaction: (
@@ -137,6 +154,42 @@ let initPromise: Promise<void> | null = null;
 let hasSubscribedOnce = false;
 let lastRecurringRunDate: string | null = null;
 let lifecycleBound = false;
+let lastWriteQueued = false;
+let syncPromise: Promise<void> | null = null;
+
+const isOfflineNow = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+
+/** Akhiran pesan sukses jika operasi terakhir disimpan offline */
+export const offlineSuffix = () => (lastWriteQueued ? ' (offline, disinkronkan saat online)' : '');
+
+/** Terapkan antrian offline di atas data server (agar transaksi yang belum terkirim tetap tampil) */
+function overlayQueue(userId: string, transactions: Transaction[], accounts: Account[]) {
+  const ops = readQueue(userId);
+  if (!ops.length) return { transactions, accounts };
+  let txs = transactions.slice();
+  let accs = accounts;
+  for (const op of ops) {
+    const before = txs.find((t) => t.id === op.id) ?? null;
+    if (op.kind === 'delete') {
+      if (!before) continue;
+      txs = txs.filter((t) => t.id !== op.id);
+      accs = adjustBalances(accs, before, null);
+      continue;
+    }
+    if (op.kind === 'create' && before) continue; // sudah tersimpan di server
+    const local = buildLocalTransaction(op.id, userId, op.input, before ?? undefined);
+    txs = txs.filter((t) => t.id !== op.id);
+    txs.push(local);
+    accs = adjustBalances(accs, before, local);
+  }
+  return { transactions: sortTransactions(txs), accounts: accs };
+}
+
+async function sendOp(userId: string, op: QueuedOp): Promise<void> {
+  if (op.kind === 'create') await transactionApi.create(userId, op.input, null, op.id);
+  else if (op.kind === 'update') await transactionApi.update(op.id, op.input);
+  else await transactionApi.remove(op.id);
+}
 
 const STALE_MS = 5 * 60 * 1000;
 
@@ -255,6 +308,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       if (document.visibilityState === 'visible') refreshIfStale();
     });
     window.addEventListener('online', () => void get().reload({ silent: true }));
+    // Coba kirim ulang antrian berkala (mis. sinyal sempat putus tanpa event "offline")
+    window.setInterval(() => {
+      const { userId, pendingCount } = get();
+      if (userId && pendingCount > 0 && !isOfflineNow()) void get().reload({ silent: true });
+    }, 60_000);
   };
 
   return {
@@ -264,6 +322,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     isRefreshing: false,
     realtimeStatus: 'idle',
     lastSyncedAt: null,
+    pendingCount: 0,
+    isSyncing: false,
     ...initialData,
 
     init: async (userId) => {
@@ -273,6 +333,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       // Tampilkan data terakhir dari cache perangkat secara instan (jika ada),
       // lalu sinkronkan diam-diam dengan server
       const cached = readFinanceCache(userId);
+      set({ pendingCount: readQueue(userId).length });
       if (cached) {
         set({ userId, ...cached, status: 'ready', error: null, isRefreshing: true });
       } else {
@@ -305,8 +366,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       const silent = options?.silent && get().status === 'ready';
       set(silent ? { isRefreshing: true } : { status: 'loading', error: null });
       try {
+        await get().syncPending();
         if (silent) await runRecurring();
-        const [accounts, categories, transactions, budgets, goals, recurring] = await Promise.all([
+        const [serverAccounts, categories, serverTransactions, budgets, goals, recurring] = await Promise.all([
           accountApi.list(uid),
           categoryApi.list(uid),
           transactionApi.list(uid),
@@ -315,6 +377,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
           recurringApi.list(uid),
         ]);
         if (get().userId !== uid) return;
+        const { transactions, accounts } = overlayQueue(uid, serverTransactions, serverAccounts);
         set({
           accounts,
           categories,
@@ -370,13 +433,55 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         isRefreshing: false,
         realtimeStatus: 'idle',
         lastSyncedAt: null,
+        pendingCount: 0,
+        isSyncing: false,
         ...initialData,
       });
+    },
+
+    syncPending: async () => {
+      if (syncPromise) return syncPromise;
+      const uid = get().userId;
+      if (!uid || isOfflineNow() || readQueue(uid).length === 0) return;
+      syncPromise = (async () => {
+        set({ isSyncing: true });
+        let sent = 0;
+        let failed = 0;
+        try {
+          for (const op of readQueue(uid)) {
+            if (get().userId !== uid) return;
+            try {
+              await sendOp(uid, op);
+              removeOp(uid, op);
+              sent++;
+            } catch (err) {
+              if (isNetworkError(err)) break; // masih offline: coba lagi nanti
+              const msg = err instanceof Error ? err.message.toLowerCase() : '';
+              removeOp(uid, op);
+              if (op.kind === 'create' && msg.includes('sudah ada')) sent++; // sudah pernah terkirim
+              else if (op.kind !== 'create' && msg.includes('rows')) sent++; // baris sudah tidak ada di server
+              else {
+                failed++;
+                console.warn('[Fundly] Antrian offline ditolak server:', err);
+              }
+            }
+          }
+        } finally {
+          set({ isSyncing: false, pendingCount: readQueue(uid).length });
+          syncPromise = null;
+        }
+        if (sent > 0) toast.success(sent + ' perubahan offline berhasil disinkronkan', { id: 'offline-sync' });
+        if (failed > 0) toast.error(failed + ' transaksi offline ditolak server (data tidak valid)', { id: 'offline-sync-failed' });
+      })();
+      return syncPromise;
     },
 
     // ---------------- Transactions ----------------
     addTransaction: async (input, recurring) => {
       const uid = requireUser();
+      if (recurring && input.type !== 'transfer' && isOfflineNow()) {
+        throw new Error('Transaksi berulang butuh koneksi internet. Matikan opsi berulang untuk menyimpan offline.');
+      }
       if (recurring && input.type !== 'transfer') {
         const template = await recurringApi.create(uid, {
           type: input.type,
@@ -396,23 +501,72 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         await get().refreshTables(['transactions', 'accounts', 'recurring_templates']);
         return get().transactions.find((t) => t.recurring_id === template.id) ?? null;
       }
-      const tx = await transactionApi.create(uid, input);
-      applyRow('transactions', tx);
-      void get().refreshTables(['accounts']);
-      return tx;
+      const id = newId();
+      lastWriteQueued = false;
+      if (!isOfflineNow() && get().pendingCount === 0) {
+        try {
+          const tx = await transactionApi.create(uid, input, null, id);
+          applyRow('transactions', tx);
+          void get().refreshTables(['accounts']);
+          return tx;
+        } catch (err) {
+          if (!isNetworkError(err)) throw err;
+        }
+      }
+      // Offline (atau masih ada antrian sebelumnya): simpan di perangkat dulu agar urutan terjaga
+      const local = buildLocalTransaction(id, uid, input);
+      enqueue(uid, { kind: 'create', id, input, queuedAt: Date.now() });
+      lastWriteQueued = true;
+      applyRow('transactions', local);
+      set({ accounts: adjustBalances(get().accounts, null, local) });
+      if (!isOfflineNow()) void get().syncPending().then(() => get().refreshTables(['accounts']));
+      return local;
     },
 
     updateTransaction: async (id, input) => {
-      const tx = await transactionApi.update(id, input);
-      applyRow('transactions', tx);
-      void get().refreshTables(['accounts']);
-      return tx;
+      const uid = requireUser();
+      const before = get().transactions.find((t) => t.id === id) ?? null;
+      const hasPendingCreate = readQueue(uid).some((o) => o.kind === 'create' && o.id === id);
+      lastWriteQueued = false;
+      if (!isOfflineNow() && !hasPendingCreate) {
+        try {
+          const tx = await transactionApi.update(id, input);
+          applyRow('transactions', tx);
+          void get().refreshTables(['accounts']);
+          return tx;
+        } catch (err) {
+          if (!isNetworkError(err)) throw err;
+        }
+      }
+      const local = buildLocalTransaction(id, uid, input, before ?? undefined);
+      enqueue(uid, { kind: 'update', id, input, queuedAt: Date.now() });
+      lastWriteQueued = true;
+      applyRow('transactions', local);
+      set({ accounts: adjustBalances(get().accounts, before, local) });
+      if (!isOfflineNow()) void get().syncPending();
+      return local;
     },
 
     deleteTransaction: async (id) => {
-      await transactionApi.remove(id);
+      const uid = requireUser();
+      const before = get().transactions.find((t) => t.id === id) ?? null;
+      const hasPendingCreate = readQueue(uid).some((o) => o.kind === 'create' && o.id === id);
+      lastWriteQueued = false;
+      if (!isOfflineNow() && !hasPendingCreate) {
+        try {
+          await transactionApi.remove(id);
+          dropRow('transactions', id);
+          void get().refreshTables(['accounts']);
+          return;
+        } catch (err) {
+          if (!isNetworkError(err)) throw err;
+        }
+      }
+      enqueue(uid, { kind: 'delete', id, queuedAt: Date.now() });
+      lastWriteQueued = !hasPendingCreate;
       dropRow('transactions', id);
-      void get().refreshTables(['accounts']);
+      if (before) set({ accounts: adjustBalances(get().accounts, before, null) });
+      if (!isOfflineNow()) void get().syncPending();
     },
 
     // ---------------- Accounts ----------------
@@ -568,3 +722,6 @@ useFinanceStore.subscribe((state, prev) => {
     });
   }, isLiteMode() ? 2500 : 800); // HP lemah: serialisasi data lebih jarang
 });
+
+// Indikator jumlah antrian offline
+onQueueChange((count) => useFinanceStore.setState({ pendingCount: count }));

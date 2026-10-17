@@ -34,7 +34,7 @@ import { DynamicIcon } from '../../utils/icons';
 import { cn } from '../../utils/cn';
 import { keypadFeedback } from '../../utils/feedback';
 import { ROUTES } from '../../config/routes';
-import { useFinanceStore } from '../../stores/financeStore';
+import { offlineSuffix, useFinanceStore } from '../../stores/financeStore';
 import { useFinanceStatus } from '../../hooks/useFinance';
 import type { RecurringFrequency, TransactionType } from '../../types/common';
 import type { Account, Transaction } from '../../types/models';
@@ -254,7 +254,7 @@ export const AddTransactionPage: React.FC = () => {
     try {
       if (isEdit && editId) {
         await updateTransaction(editId, payload);
-        toast.success('Transaksi berhasil diperbarui');
+        toast.success('Transaksi berhasil diperbarui' + offlineSuffix());
       } else {
         await addTransaction(
           payload,
@@ -264,7 +264,7 @@ export const AddTransactionPage: React.FC = () => {
         toast.success(
           recurringEnabled
             ? `${label} berulang ${FREQUENCY_OPTIONS.find((f) => f.value === frequency)?.label.toLowerCase()} disimpan`
-            : `${label} ${formatCurrency(inputNumeric)} berhasil disimpan`,
+            : `${label} ${formatCurrency(inputNumeric)} berhasil disimpan${offlineSuffix()}`,
         );
       }
       keypadFeedback('success');
@@ -281,7 +281,7 @@ export const AddTransactionPage: React.FC = () => {
     setIsDeleting(true);
     try {
       await deleteTransaction(editId);
-      toast.success('Transaksi berhasil dihapus');
+      toast.success('Transaksi berhasil dihapus' + offlineSuffix());
       setShowDelete(false);
       navigate(ROUTES.TRANSACTIONS, { replace: true });
     } catch (e) {

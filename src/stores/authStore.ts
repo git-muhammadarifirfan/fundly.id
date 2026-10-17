@@ -4,7 +4,14 @@
 
 import { create } from 'zustand';
 import type { AuthError, Session, User } from '@supabase/supabase-js';
-import { isSupabaseConfigured, openedFromRecoveryLink, setRememberSession, supabase, toFriendlyError } from '../lib/supabase';
+import {
+  isSupabaseConfigured,
+  openedFromRecoveryLink,
+  readStoredSession,
+  setRememberSession,
+  supabase,
+  toFriendlyError,
+} from '../lib/supabase';
 import { profileApi } from '../services/financeApi';
 import { clearFinanceCache } from '../lib/financeCache';
 import type { Profile } from '../types/models';
@@ -179,11 +186,35 @@ export const useAuthStore = create<AuthState>((set, get) => {
         return;
       }
 
-      // Pengaman: jangan biarkan layar loading selamanya
-      const fallback = setTimeout(() => set({ isLoading: false }), 8000);
+      // Mode offline: Supabase bisa mencoba memperbarui token hingga ±30 detik.
+      // Pakai sesi tersimpan agar aplikasi langsung terbuka dengan data di perangkat.
+      const applyStoredSession = () => {
+        const stored = readStoredSession();
+        if (!stored || get().user) return false;
+        applySession(stored);
+        set({ isLoading: false });
+        return true;
+      };
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) applyStoredSession();
+
+      // Pengaman: jangan biarkan layar loading selamanya (koneksi lambat / tanpa internet)
+      const fallback = setTimeout(() => {
+        if (!applyStoredSession()) set({ isLoading: false });
+      }, 8000);
 
       supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'PASSWORD_RECOVERY') set({ isPasswordRecovery: true });
+        // Offline + token kedaluwarsa: Supabase belum bisa memperbarui sesi, tapi sesi
+        // tersimpan masih ada → tetap masuk (mode offline). Token diperbarui otomatis saat online.
+        if (event === 'INITIAL_SESSION' && !session) {
+          const stored = readStoredSession();
+          if (stored) {
+            applySession(stored);
+            clearTimeout(fallback);
+            set({ isLoading: false });
+            return;
+          }
+        }
         applySession(session);
         if (event === 'INITIAL_SESSION') {
           clearTimeout(fallback);

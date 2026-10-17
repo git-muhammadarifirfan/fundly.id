@@ -2,7 +2,7 @@
 // Fundly.id - Supabase Client Configuration
 // ============================================
 
-import { createClient, type SupportedStorage } from '@supabase/supabase-js';
+import { createClient, type Session, type SupportedStorage } from '@supabase/supabase-js';
 
 // VITE_* diutamakan; NEXT_PUBLIC_* sebagai cadangan dari integrasi Supabase di Vercel
 const env = import.meta.env as Record<string, string | undefined>;
@@ -96,6 +96,25 @@ const fetchWithAuthTimeout: typeof fetch = (input, init) => {
   return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
 };
 
+const AUTH_STORAGE_KEY = 'fundly-auth';
+
+/**
+ * Sesi terakhir yang tersimpan di perangkat. Dipakai saat offline: token bisa
+ * kedaluwarsa dan belum bisa diperbarui, tapi user tetap boleh melihat data
+ * cache & mencatat transaksi (dikirim setelah token diperbarui saat online).
+ */
+export function readStoredSession(): Session | null {
+  try {
+    const raw = authStorage.getItem(AUTH_STORAGE_KEY) as string | null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Session | { currentSession?: Session };
+    const session = 'currentSession' in parsed && parsed.currentSession ? parsed.currentSession : (parsed as Session);
+    return session?.user && session.refresh_token ? session : null;
+  } catch {
+    return null;
+  }
+}
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -105,7 +124,7 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storage: authStorage,
-      storageKey: 'fundly-auth',
+      storageKey: AUTH_STORAGE_KEY,
     },
     realtime: {
       params: { eventsPerSecond: 10 },

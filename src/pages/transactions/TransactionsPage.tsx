@@ -28,7 +28,7 @@ import { DynamicIcon, readableIconColor } from '../../utils/icons';
 import { cn } from '../../utils/cn';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { useAccountMap, useCategoryMap, useFinanceStatus } from '../../hooks/useFinance';
-import { useFinanceStore } from '../../stores/financeStore';
+import { offlineSuffix, useFinanceStore } from '../../stores/financeStore';
 import { ActionSearchBar } from '../../components/ui/ActionSearchBar/ActionSearchBar';
 import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { Skeleton } from '../../components/ui/Skeleton/Skeleton';
@@ -218,7 +218,7 @@ export const TransactionsPage: React.FC = () => {
     setIsDeleting(true);
     try {
       await deleteTransaction(pendingDelete.id);
-      toast.success('Transaksi berhasil dihapus');
+      toast.success('Transaksi berhasil dihapus' + offlineSuffix());
       setPendingDelete(null);
       setSelectedTx(null);
     } catch (e) {

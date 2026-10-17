@@ -213,10 +213,11 @@ export const transactionApi = {
     return rows.map(normalizeTransaction);
   },
 
-  async create(userId: string, input: TransactionInput, recurringId?: string | null): Promise<Transaction> {
+  async create(userId: string, input: TransactionInput, recurringId?: string | null, id?: string): Promise<Transaction> {
     const { data, error } = await supabase
       .from('transactions')
       .insert({
+        ...(id ? { id } : {}),
         user_id: userId,
         ...input,
         to_account_id: input.type === 'transfer' ? input.to_account_id : null,
