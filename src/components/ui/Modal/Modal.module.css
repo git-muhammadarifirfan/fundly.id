@@ -149,3 +149,12 @@
     padding: var(--space-3) var(--space-4) calc(var(--space-4) + var(--safe-bottom, 0px));
   }
 }
+
+/* Lapisan teratas: di atas overlay halaman (z-index 9999) seperti detail transaksi */
+.layerTop {
+  z-index: 10000;
+}
+
+.layerTop > * {
+  z-index: 10000;
+}

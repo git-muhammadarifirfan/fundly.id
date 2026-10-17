@@ -33,7 +33,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onClose,
 }) => (
-  <Modal isOpen={isOpen} onClose={loading ? () => undefined : onClose} size="sm" showClose={false}>
+  <Modal isOpen={isOpen} onClose={loading ? () => undefined : onClose} size="sm" showClose={false} layer="top">
     <div className={styles.content}>
       <div className={variant === 'danger' ? styles.iconDanger : styles.iconPrimary}>
         {icon || <AlertTriangle size={26} />}

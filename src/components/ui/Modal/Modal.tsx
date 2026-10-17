@@ -3,6 +3,7 @@
 // ============================================
 
 import React, { useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../../../utils/cn';
@@ -16,6 +17,8 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'full';
   showClose?: boolean;
   className?: string;
+  /** 'top' = selalu di atas overlay/halaman lain (mis. dialog konfirmasi) */
+  layer?: 'default' | 'top';
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -26,6 +29,7 @@ export const Modal: React.FC<ModalProps> = ({
   size = 'md',
   showClose = true,
   className,
+  layer = 'default',
 }) => {
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -45,10 +49,11 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, handleEscape]);
 
-  return (
+  // Dirender ke <body> agar tidak terjebak stacking context halaman (mis. modal detail transaksi)
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className={styles.wrapper}>
+        <div className={cn(styles.wrapper, layer === 'top' && styles.layerTop)}>
           <motion.div
             className={styles.backdrop}
             initial={{ opacity: 0 }}
@@ -85,7 +90,8 @@ export const Modal: React.FC<ModalProps> = ({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };
 
