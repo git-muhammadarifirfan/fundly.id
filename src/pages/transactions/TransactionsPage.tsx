@@ -16,10 +16,10 @@ import {
   Pencil,
   Trash2,
   Repeat,
-  Wallet, List, CalendarDays } from 'lucide-react';
+  Wallet,
+} from 'lucide-react';
 import { endOfMonth, startOfMonth, subDays } from 'date-fns';
 import { Card } from '../../components/ui/Card/Card';
-import { TransactionCalendar } from './TransactionCalendar';
 import { Button } from '../../components/ui/Button/Button';
 import { ROUTES, editTransactionPath } from '../../config/routes';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -75,7 +75,6 @@ export const TransactionsPage: React.FC = () => {
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_STEP);
-  const [view, setView] = useState<'list' | 'calendar'>('list');
 
   // Bersihkan query string setelah dibaca agar URL tetap rapi
   useEffect(() => {
@@ -228,9 +227,6 @@ export const TransactionsPage: React.FC = () => {
       setIsDeleting(false);
     }
   };
-
-  const signedAmount = (tx: Transaction) =>
-    tx.type === 'income' ? tx.amount : tx.type === 'expense' ? -tx.amount : 0;
 
   const filterCategories = categories.filter((c) => filterType === 'all' || c.type === filterType);
 
@@ -509,42 +505,11 @@ export const TransactionsPage: React.FC = () => {
               Reset filter
             </button>
           )}
-          <div className={styles.viewToggle} role="tablist" aria-label="Tampilan transaksi">
-            <button
-              role="tab"
-              aria-selected={view === 'list'}
-              className={cn(styles.viewBtn, view === 'list' && styles.viewBtnActive)}
-              onClick={() => setView('list')}
-            >
-              <List size={14} /> Daftar
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === 'calendar'}
-              className={cn(styles.viewBtn, view === 'calendar' && styles.viewBtnActive)}
-              onClick={() => setView('calendar')}
-            >
-              <CalendarDays size={14} /> Kalender
-            </button>
-          </div>
         </div>
       )}
 
-      {/* Kalender transaksi: ketuk tanggal untuk menyaring daftar */}
-      {view === 'calendar' && !isLoading && !isError && transactions.length > 0 && (
-        <TransactionCalendar
-          transactions={transactions}
-          onSelectDay={(iso) => {
-            setDatePreset('custom');
-            setStartDate(iso);
-            setEndDate(iso);
-            setView('list');
-          }}
-        />
-      )}
-
       {/* Transaction Groups List */}
-      <div className={styles.groups} ref={listRef} style={view === 'calendar' && transactions.length > 0 ? { display: 'none' } : undefined}>
+      <div className={styles.groups} ref={listRef}>
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '12px 0' }}>
             {[0, 1, 2, 3, 4].map((i) => (
@@ -576,17 +541,25 @@ export const TransactionsPage: React.FC = () => {
         ) : (
           <>
             {groupedTransactions.map((group) => {
-              const net = group.transactions.reduce((sum, tx) => sum + (tx.status === 'cleared' ? signedAmount(tx) : 0), 0);
+              let dayIncome = 0;
+              let dayExpense = 0;
+              for (const tx of group.transactions) {
+                if (tx.status !== 'cleared') continue;
+                if (tx.type === 'income') dayIncome += tx.amount;
+                else if (tx.type === 'expense') dayExpense += tx.amount;
+              }
               return (
                 <div key={group.date || 'sorted'} className={styles.group}>
                   <div className={styles.groupHeader}>
                     <span className={styles.groupDate}>{group.date ? getDateGroupLabel(group.date) : 'Nominal Terbesar'}</span>
-                    {group.date && (
-                      <span
-                        className={cn(styles.groupTotal, net > 0 && styles.groupTotalPositive, net < 0 && styles.groupTotalNegative)}
-                      >
-                        {net > 0 ? '+' : ''}
-                        {formatCurrency(net)}
+                    {group.date && (dayIncome > 0 || dayExpense > 0) && (
+                      <span className={styles.groupTotals}>
+                        {dayIncome > 0 && (
+                          <span className={cn(styles.groupTotal, styles.groupTotalPositive)}>+{formatCurrency(dayIncome)}</span>
+                        )}
+                        {dayExpense > 0 && (
+                          <span className={cn(styles.groupTotal, styles.groupTotalNegative)}>-{formatCurrency(dayExpense)}</span>
+                        )}
                       </span>
                     )}
                   </div>
