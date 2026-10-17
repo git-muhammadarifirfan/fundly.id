@@ -10,6 +10,9 @@
    CSS Custom Properties (Design Tokens)
    ============================================ */
 :root {
+  /* Selalu tema terang: cegah mode gelap otomatis browser (Chrome/Samsung Internet/Safari) */
+  color-scheme: only light;
+
   /* ---- Primary Colors (Lime Green Theme) ---- */
   --color-primary: #C6E83B;
   --color-primary-hover: #B8D635;
