@@ -10,7 +10,7 @@ const PRECACHE_PREFIX = 'fundly-precache-';
 const PRECACHE = PRECACHE_PREFIX + VERSION;
 const RUNTIME = 'fundly-runtime';
 const PRECACHE_URLS = __PRECACHE_URLS__;
-const NAV_TIMEOUT_MS = 4000;
+const NAV_TIMEOUT_MS = 3000;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -36,7 +36,17 @@ self.addEventListener('activate', (event) => {
 const isStaticAsset = (url) =>
   url.pathname.startsWith('/assets/') || /\.(png|svg|ico|webp|jpg|jpeg|webmanifest|woff2?)$/i.test(url.pathname);
 
+async function cachedShell() {
+  const current = await caches.open(PRECACHE);
+  return (await current.match('/index.html')) || (await caches.match('/index.html')) || (await caches.match('/'));
+}
+
 async function networkFirstNavigation(request) {
+  // Sudah pasti offline: jangan menunggu jaringan sama sekali
+  if (self.navigator && self.navigator.onLine === false) {
+    const shell = await cachedShell();
+    if (shell) return shell;
+  }
   try {
     const response = await Promise.race([
       fetch(request),
@@ -44,8 +54,7 @@ async function networkFirstNavigation(request) {
     ]);
     return response;
   } catch {
-    const cached = (await caches.match('/index.html')) || (await caches.match('/'));
-    return cached || Response.error();
+    return (await cachedShell()) || Response.error();
   }
 }
 

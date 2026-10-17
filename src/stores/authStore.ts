@@ -198,6 +198,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (typeof navigator !== 'undefined' && navigator.onLine === false) applyStoredSession();
 
       // Pengaman: jangan biarkan layar loading selamanya (koneksi lambat / tanpa internet)
+      const quickFallback = setTimeout(() => applyStoredSession(), 3000);
       const fallback = setTimeout(() => {
         if (!applyStoredSession()) set({ isLoading: false });
       }, 8000);
@@ -211,6 +212,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
           if (stored) {
             applySession(stored);
             clearTimeout(fallback);
+            clearTimeout(quickFallback);
             set({ isLoading: false });
             return;
           }
@@ -218,6 +220,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         applySession(session);
         if (event === 'INITIAL_SESSION') {
           clearTimeout(fallback);
+          clearTimeout(quickFallback);
           set({ isLoading: false });
         }
       });

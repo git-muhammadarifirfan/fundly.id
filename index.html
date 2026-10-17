@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="description" content="Fundly - Aplikasi pencatatan keuangan pribadi. Lacak pemasukan, pengeluaran, budget, dan target tabungan Anda dengan mudah." />
 
-    <!-- Fonts: preconnect + hanya bobot Inter yang dipakai (400-800) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <!-- Latar terang & splash langsung tampil (tanpa menunggu CSS/JS) agar tidak pernah layar hitam -->
+    <style>
+      html, body { margin: 0; background: #F5F5F7; color: #1C1C1E; color-scheme: only light; }
+      .boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #F5F5F7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .boot img { width: 64px; height: 64px; border-radius: 18px; }
+      .boot span { font-size: 13px; color: #6E6E73; }
+    </style>
 
     <!-- Icons: browser tab, iPhone/iPad home screen, Android & PWA -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -38,7 +41,7 @@
     <title>Fundly - Pencatatan Keuangan Pribadi</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot"><img src="/logo-mark.svg" alt="" /><span>Memuat Fundly...</span></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
